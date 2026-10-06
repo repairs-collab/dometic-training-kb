@@ -88,6 +88,8 @@ export interface KnowledgeEntry {
   summary: string;
   steps: string[];
   warnings: string[];
+  hazards?: string[];
+  acceptanceTopics?: string[];
   parts: PartReference[];
   specifications: SpecificationValue[];
   sourceRefs: SourceRef[];

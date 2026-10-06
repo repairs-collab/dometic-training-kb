@@ -1,0 +1,27 @@
+{
+  "phrases": {
+    "will not start": ["wont turn on", "won't turn on", "not turning on", "no power", "dead"],
+    "not cooling": ["not cold", "warm fridge", "poor cooling", "does not cool"],
+    "water leak": ["leaking", "dripping", "water coming through"],
+    "compressor start failure": ["compressor wont start", "compressor won't start", "start fault", "three flashes", "3 flashes"],
+    "settings locked": ["cannot change settings", "settings not adjustable", "padlock", "child lock"],
+    "generator size": ["generator capacity", "what generator", "kva required"],
+    "fuse location": ["where are the fuses", "check fuse", "ac fuse", "dc fuse"],
+    "gas connection": ["gas inlet", "gas fitting", "two connections", "thermocouple connection"],
+    "door not closing": ["door won't shut", "door not latching", "door coming off"]
+  },
+  "models": {
+    "fresh jet": "FreshJet",
+    "fj z": "FJZ",
+    "fj 48v": "FJ48V",
+    "rcd 10.5": "RCD10.5",
+    "rmd 10.5": "RMD10.5",
+    "ruc 5308": "RUC5308X",
+    "ruc 6508": "RUC6508X",
+    "ruc 8508": "RUC8508X",
+    "rua 5308": "RUA5308X",
+    "mc 101": "MC101",
+    "mc 102": "MC102",
+    "baw 3000": "BAW3000"
+  }
+}
