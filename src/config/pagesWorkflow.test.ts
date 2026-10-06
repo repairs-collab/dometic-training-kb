@@ -14,7 +14,7 @@ describe('GitHub Pages workflow', () => {
     expect(workflow).toContain('actions/setup-node');
     expect(workflow).toContain('actions/setup-python');
     expect(workflow).toContain('pnpm install --frozen-lockfile');
-    expect(workflow).toContain('python -m pip install -e .');
+    expect(workflow).toContain('python -m pip install -e ".[dev]"');
     expect(workflow).toContain('pnpm exec playwright install --with-deps chromium');
     expect(workflow).toContain('pnpm test');
     expect(workflow).toContain('python -m pytest -v');

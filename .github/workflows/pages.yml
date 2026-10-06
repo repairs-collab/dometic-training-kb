@@ -41,7 +41,7 @@ jobs:
       - name: Install application dependencies
         run: |
           pnpm install --frozen-lockfile
-          python -m pip install -e .
+          python -m pip install -e ".[dev]"
           pnpm exec playwright install --with-deps chromium
 
       - name: Run unit and content tests
