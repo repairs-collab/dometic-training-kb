@@ -47,6 +47,7 @@ jobs:
 
       - name: Run unit and content tests
         run: |
+          pnpm typecheck
           pnpm test
           python -m pytest -v
 

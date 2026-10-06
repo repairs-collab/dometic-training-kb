@@ -40,7 +40,6 @@ export interface SearchHit {
   category: ProductCategory;
   productFamilies: string[];
   models: string[];
-  modelContextTokens: string[];
   kind?: EntryKind;
   manualIds: string[];
   matchedCode?: string;
@@ -53,6 +52,7 @@ interface IndexedDocument {
   category: ProductCategory;
   productFamilies: string[];
   models: string[];
+  modelContextTokens: string[];
   kind?: EntryKind;
   manualIds: string[];
   title: string;
@@ -114,7 +114,7 @@ function declaredCodeTokens(values: string[]): string[] {
     values.flatMap((value) => {
       const normalized = separatedCodeText(value);
       const compact = compactToken(value);
-      const tokens = normalized.match(/\b[a-z]{1,3}\d{1,3}\b/g) ?? [];
+      const tokens: string[] = normalized.match(/\b[a-z]{1,3}\d{1,3}\b/g) ?? [];
       const contextualNumbers = [...normalized.matchAll(/\b(?:error|warning|code)\s+(\d{1,3})\b/g)]
         .map((match) => match[1] ?? '');
       if (/^(?:[a-z]{1,3}\d{0,3}|\d{1,3})$/.test(compact)) tokens.push(compact);
@@ -150,7 +150,10 @@ function queryCodeTokens(query: string, knownModelTokens: Set<string>): string[]
     );
 }
 
-function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
+function buildDocuments(
+  corpus: SearchCorpus,
+  knownModelTokens: Set<string>,
+): IndexedDocument[] {
   const manuals = new Map(corpus.manuals.map((manual) => [manual.id, manual]));
   const knowledgeDocuments = corpus.knowledge.map((entry): IndexedDocument => {
     const manualIds = unique(entry.sourceRefs.map((source) => source.manualId));
@@ -211,18 +214,20 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
         ...referencedManuals.flatMap((item) => item.productFamilies),
       ]);
       const pageText = compactToken(page.text);
-      const pageScopedValues = unique([
-        ...page.productFamilies,
-        ...page.models,
+      const pageContextTokens = unique([
+        ...page.productFamilies.map(compactToken),
+        ...page.models.map(compactToken),
+        ...[...knownModelTokens].filter(
+          (model) => model.length >= 3 && pageText.includes(model),
+        ),
         ...referencedManuals.flatMap((item) =>
           item.productFamilies.filter((family) => {
             const familyToken = compactToken(family);
             return (
               pageText.includes(familyToken) ||
-              item.productFamilies.length <= 2 ||
               compactToken(item.title).includes(familyToken)
             );
-          }),
+          }).map(compactToken),
         ),
       ]);
       const title = `${manual?.title ?? page.manualId} page ${page.pageNumber}`;
@@ -237,7 +242,7 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
         category,
         productFamilies,
         models: page.models,
-        modelContextTokens: pageScopedValues.map(compactToken),
+        modelContextTokens: pageContextTokens,
         manualIds: unique(sourceRefs.map((source) => source.manualId)),
         title,
         codes: codeTokens.join(' '),
@@ -256,7 +261,6 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
 }
 
 export function createSearchEngine(corpus: SearchCorpus): SearchEngine {
-  const documents = buildDocuments(corpus);
   const knownModelTokens = new Set(
     unique([
       ...corpus.manuals.flatMap((manual) => manual.productFamilies),
@@ -266,6 +270,7 @@ export function createSearchEngine(corpus: SearchCorpus): SearchEngine {
       ...Object.values(corpus.aliases.models),
     ]).map(compactToken),
   );
+  const documents = buildDocuments(corpus, knownModelTokens);
   const index = new MiniSearch<IndexedDocument>({
     idField: 'key',
     fields: ['title', 'codes', 'modelsText', 'aliases', 'symptoms', 'summary', 'body'],
@@ -283,9 +288,11 @@ export function createSearchEngine(corpus: SearchCorpus): SearchEngine {
 
 function queryModelTokens(query: string, knownModelTokens: Set<string>): string[] {
   const compactQuery = compactToken(query);
-  return [...knownModelTokens].filter(
+  const matches = [...knownModelTokens].filter(
     (model) => model.length >= 3 && compactQuery.includes(model),
   );
+  const longest = Math.max(0, ...matches.map((model) => model.length));
+  return matches.filter((model) => model.length === longest);
 }
 
 function hasModelContext(document: IndexedDocument, queryModels: string[]): boolean {

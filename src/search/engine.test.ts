@@ -52,6 +52,10 @@ describe('model-aware manual search', () => {
   it('treats numbered flash patterns as exact codes', () => {
     expect(search(engine, 'RCD 3 flashes', {})[0]?.id).toBe('rcd-compressor-controller-test');
     expect(search(engine, 'RCD 5 flashes', {})[0]?.id).toBe('rcd-five-flashes-overheat');
+    expect(search(engine, 'RCD10.5XES 3 flashes', {})[0]?.id).toBe(
+      'rcd-compressor-controller-test',
+    );
+    expect(search(engine, 'RCD10.5XS 3 flashes', {})).toEqual([]);
   });
 
   it('keeps duplicate manual and model context searchable', () => {

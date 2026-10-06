@@ -37,6 +37,7 @@ pnpm preview
 ## Quality checks
 
 ```text
+pnpm typecheck
 pnpm test
 python -m pytest -v
 pnpm build:data

@@ -18,6 +18,7 @@ describe('GitHub Pages workflow', () => {
     expect(workflow).toContain('python -m pip install -e ".[dev]"');
     expect(workflow).toContain('pnpm exec playwright install --with-deps chromium');
     expect(workflow).toContain('pnpm test');
+    expect(workflow).toContain('pnpm typecheck');
     expect(workflow).toContain('python -m pytest -v');
     expect(workflow).toContain('pnpm build:data');
     expect(workflow).toContain('pnpm build');

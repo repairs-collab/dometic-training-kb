@@ -87,6 +87,16 @@ test('numbered flashes stay within the requested model family', async ({ page })
     'RCD three-flash compressor controller test',
   );
 
+  await page.getByRole('searchbox').fill('RCD10.5XES 3 flashes');
+  await page.getByRole('searchbox').press('Enter');
+  await expect(page.locator('.result-card h3').first()).toHaveText(
+    'RCD three-flash compressor controller test',
+  );
+
+  await page.getByRole('searchbox').fill('RCD10.5XS 3 flashes');
+  await page.getByRole('searchbox').press('Enter');
+  await expect(page.getByText('No matching manual information found')).toBeVisible();
+
   await page.getByRole('searchbox').fill('RUA E34');
   await page.getByRole('searchbox').press('Enter');
   await expect(page.getByText('No matching manual information found')).toBeVisible();
