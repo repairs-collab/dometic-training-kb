@@ -61,7 +61,11 @@ export interface PageRecord {
   aliases: string[];
   sourceUrl: string;
   extractionStatus: ExtractionStatus;
+  lowText?: boolean;
   duplicateGroup?: string;
+  duplicateOf?: string;
+  searchTextExcluded?: boolean;
+  alternateSourceRefs?: SourceRef[];
   reviewNote?: string;
 }
 
