@@ -2,6 +2,7 @@ node_modules/
 dist/
 public/data/
 public/manuals/
+public/CNAME
 .work/
 .pytest_cache/
 __pycache__/
