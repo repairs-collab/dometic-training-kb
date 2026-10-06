@@ -125,3 +125,36 @@ def test_source_page_must_be_within_manual_bounds() -> None:
     assert "knowledge bad-source references page 2 outside manual-a" in validate_content(
         manuals, pages, knowledge, {"phrases": {}, "models": {}}
     )
+
+
+def test_low_text_page_requires_reviewed_extraction_status() -> None:
+    manuals = [
+        {
+            "id": "manual-a",
+            "title": "Manual A",
+            "filename": "manual-a.pdf",
+            "pageCount": 1,
+            "category": "general",
+            "productFamilies": [],
+        }
+    ]
+    pages = [
+        {
+            "id": "manual-a-p1",
+            "manualId": "manual-a",
+            "pageNumber": 1,
+            "category": "general",
+            "productFamilies": [],
+            "models": [],
+            "text": "draft",
+            "excerpt": "draft",
+            "aliases": [],
+            "sourceUrl": "./manuals/manual-a.pdf#page=1",
+            "extractionStatus": "embedded-text",
+            "lowText": True,
+        }
+    ]
+
+    assert "page manual-a-p1 requires reviewed low-text content" in validate_content(
+        manuals, pages, [], {"phrases": {}, "models": {}}
+    )

@@ -30,6 +30,7 @@ ACCEPTANCE_TOPICS = (
     "RUC fuse location",
     "MC101 gas connections",
 )
+REVIEWED_LOW_TEXT_STATUSES = {"ocr", "manual-transcription", "visual-only", "excluded"}
 
 
 def duplicate_ids(kind: str, records: list[dict]) -> list[str]:
@@ -78,6 +79,8 @@ def validate_content(
             errors.append(f"page {page_id} references unknown manual {manual_id}")
         elif not isinstance(page_number, int) or not 1 <= page_number <= manual["pageCount"]:
             errors.append(f"page {page_id} references page {page_number} outside {manual_id}")
+        if page.get("lowText") and page.get("extractionStatus") not in REVIEWED_LOW_TEXT_STATUSES:
+            errors.append(f"page {page_id} requires reviewed low-text content")
 
     covered_categories: set[str] = set()
     covered_topics: set[str] = set()

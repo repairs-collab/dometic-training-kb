@@ -31,6 +31,9 @@ def test_build_copies_validated_catalogues_and_unchanged_manuals(tmp_path: Path)
     ) == 18
     pages = json.loads((output / "data" / "pages.json").read_text(encoding="utf-8"))
     assert len(pages) == 217
+    ruc_codes = next(page for page in pages if page["id"] == "dual-hinge-fridge-2026-08-p5")
+    assert ruc_codes["productFamilies"] == []
+    assert ruc_codes["models"] == []
     for page in pages:
         relative = unquote(page["sourceUrl"].split("#", 1)[0]).removeprefix("./")
         assert (output / relative).is_file()
@@ -48,6 +51,24 @@ def test_build_rejects_out_of_range_reference_before_writing(tmp_path: Path) -> 
     output = tmp_path / "public"
 
     with pytest.raises(ValueError, match="outside"):
+        build_site_data(content, ROOT / "source-manuals", output)
+
+    assert not output.exists()
+
+
+def test_build_rejects_unreviewed_low_text_page_before_writing(tmp_path: Path) -> None:
+    content = tmp_path / "content"
+    content.mkdir()
+    for name in ("manuals.json", "pages.json", "knowledge.json", "aliases.json"):
+        value = json.loads((ROOT / "content" / name).read_text(encoding="utf-8"))
+        if name == "pages.json":
+            value = copy.deepcopy(value)
+            value[0]["lowText"] = True
+            value[0]["extractionStatus"] = "embedded-text"
+        (content / name).write_text(json.dumps(value), encoding="utf-8")
+    output = tmp_path / "public"
+
+    with pytest.raises(ValueError, match="requires reviewed low-text content"):
         build_site_data(content, ROOT / "source-manuals", output)
 
     assert not output.exists()

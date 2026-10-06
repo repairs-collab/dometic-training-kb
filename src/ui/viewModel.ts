@@ -71,6 +71,15 @@ function sections(warnings: string[], steps: string[]): ResultSection[] {
   return values;
 }
 
+function pageSummary(text: string, excerpt: string, matchedCode?: string): string {
+  if (!matchedCode) return excerpt || text.slice(0, 240);
+  const index = text.toLowerCase().indexOf(matchedCode.toLowerCase());
+  if (index < 0) return excerpt || text.slice(0, 240);
+  const start = Math.max(0, index - 90);
+  const end = Math.min(text.length, index + matchedCode.length + 170);
+  return `${start ? '…' : ''}${text.slice(start, end).trim()}${end < text.length ? '…' : ''}`;
+}
+
 export function buildResultCards(hits: SearchHit[], corpus: SearchCorpus): ResultCard[] {
   const knowledge = new Map(corpus.knowledge.map((entry) => [entry.id, entry]));
   const pages = new Map(corpus.pages.map((page) => [page.id, page]));
@@ -109,9 +118,9 @@ export function buildResultCards(hits: SearchHit[], corpus: SearchCorpus): Resul
         type: 'page',
         title: `${manual?.title ?? page.manualId} - page ${page.pageNumber}`,
         category: hit.category,
-        productFamilies: hit.productFamilies,
-        models: hit.models,
-        summary: page.excerpt || page.text.slice(0, 240),
+        productFamilies: page.productFamilies,
+        models: page.models,
+        summary: pageSummary(page.text, page.excerpt, hit.matchedCode),
         sections: [],
         parts: [],
         specifications: [],
@@ -121,7 +130,9 @@ export function buildResultCards(hits: SearchHit[], corpus: SearchCorpus): Resul
     })
     .filter((card): card is ResultCard => Boolean(card))
     .sort((left, right) => {
+      const scoreDifference = right.score - left.score;
+      if (scoreDifference) return scoreDifference;
       if (left.type !== right.type) return left.type === 'knowledge' ? -1 : 1;
-      return right.score - left.score || left.id.localeCompare(right.id);
+      return left.id.localeCompare(right.id);
     });
 }

@@ -34,9 +34,6 @@ def enriched_pages(pages: list[dict], manuals: list[dict]) -> list[dict]:
         manual = manual_by_id[page["manualId"]]
         if page.get("category") == "general":
             page["category"] = manual["category"]
-        page["productFamilies"] = list(
-            dict.fromkeys([*page.get("productFamilies", []), *manual["productFamilies"]])
-        )
         values.append(page)
     return values
 

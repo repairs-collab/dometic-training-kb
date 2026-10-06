@@ -95,4 +95,25 @@ describe('validateCatalogs', () => {
       'page fjz-training-p1 has unknown extractionStatus guessed',
     ]);
   });
+
+  test('rejects non-array catalogues and non-record items', () => {
+    const result = validateCatalogs({}, [page, 'bad-page'], [knowledge], {
+      phrases: {},
+      models: {},
+    });
+
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        'manuals must be an array',
+        'pages item 2 must be an object',
+        'page fjz-training-p1 references unknown manual fjz-training',
+      ]),
+    );
+  });
+
+  test('rejects malformed aliases', () => {
+    const result = validateCatalogs([manual], [page], [knowledge], []);
+
+    expect(result.errors).toEqual(['aliases must be an object']);
+  });
 });

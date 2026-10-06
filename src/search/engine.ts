@@ -42,6 +42,7 @@ export interface SearchHit {
   models: string[];
   kind?: EntryKind;
   manualIds: string[];
+  matchedCode?: string;
 }
 
 interface IndexedDocument {
@@ -55,6 +56,7 @@ interface IndexedDocument {
   manualIds: string[];
   title: string;
   codes: string;
+  codeTokens: string[];
   modelsText: string;
   aliases: string;
   symptoms: string;
@@ -68,10 +70,62 @@ export interface SearchEngine {
   corpus: SearchCorpus;
   index: MiniSearch<IndexedDocument>;
   documents: Map<string, IndexedDocument>;
+  knownModelTokens: Set<string>;
 }
 
 function unique(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))];
+}
+
+function separatedCodeText(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function declaredCodeTokens(values: string[]): string[] {
+  return unique(
+    values.flatMap((value) => {
+      const normalized = separatedCodeText(value);
+      const compact = compactToken(value);
+      const tokens = normalized.match(/\b[a-z]{1,3}\d{1,3}\b/g) ?? [];
+      const contextualNumbers = [...normalized.matchAll(/\b(?:error|warning|code)\s+(\d{1,3})\b/g)]
+        .map((match) => match[1] ?? '');
+      if (/^(?:[a-z]{1,3}\d{0,3}|\d{1,3})$/.test(compact)) tokens.push(compact);
+      return [...tokens, ...contextualNumbers].map(compactToken);
+    }),
+  );
+}
+
+function pageCodeTokens(value: string): string[] {
+  const uppercaseCodes = value.match(/\b(?:[A-Z]{1,2}|[A-Z]{1,3}\d{1,3})\b/g) ?? [];
+  const normalized = separatedCodeText(value);
+  const contextualNumbers = [...normalized.matchAll(/\b(?:error|warning|code)\s+(\d{1,3})\b/g)]
+    .map((match) => match[1] ?? '');
+  return unique([...uppercaseCodes, ...contextualNumbers].map(compactToken));
+}
+
+function queryCodeTokens(query: string, knownModelTokens: Set<string>): string[] {
+  const commonAbbreviations = new Set(['ac', 'dc', 'ok', 'ng']);
+  const normalized = separatedCodeText(query);
+  const alphanumeric = normalized.match(/\b[a-z]{1,3}\d{1,3}\b/g) ?? [];
+  const uppercaseLetters = query.match(/\b[A-Z]{1,2}\b/g) ?? [];
+  const contextualNumbers = [...normalized.matchAll(/\b(?:error|warning|code)\s+(\d{1,3})\b/g)]
+    .map((match) => match[1] ?? '');
+  const standaloneNumber = /^\d{1,3}$/.test(normalized) ? [normalized] : [];
+  return unique([...alphanumeric, ...uppercaseLetters, ...contextualNumbers, ...standaloneNumber]
+    .map(compactToken))
+    .filter(
+      (candidate) =>
+        !commonAbbreviations.has(candidate) &&
+        ![...knownModelTokens].some(
+          (model) => model === candidate || model.startsWith(candidate) || candidate.startsWith(model),
+        ),
+    );
 }
 
 function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
@@ -79,6 +133,7 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
   const knowledgeDocuments = corpus.knowledge.map((entry): IndexedDocument => {
     const manualIds = unique(entry.sourceRefs.map((source) => source.manualId));
     const acceptanceTopics = entry.acceptanceTopics ?? [];
+    const codeTokens = declaredCodeTokens(entry.codes);
     const searchableText = [
       entry.title,
       ...entry.codes,
@@ -100,7 +155,8 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
       kind: entry.kind,
       manualIds,
       title: entry.title,
-      codes: entry.codes.join(' '),
+      codes: codeTokens.join(' '),
+      codeTokens,
       modelsText: [...entry.models, ...entry.productFamilies].join(' '),
       aliases: [...entry.aliases, ...acceptanceTopics].join(' '),
       symptoms: entry.symptoms.join(' '),
@@ -119,15 +175,22 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
         page.extractionStatus !== 'visual-only',
     )
     .map((page): IndexedDocument => {
+      const sourceRefs = page.alternateSourceRefs?.length
+        ? page.alternateSourceRefs
+        : [{ manualId: page.manualId, pageNumber: page.pageNumber }];
+      const referencedManuals = sourceRefs
+        .map((source) => manuals.get(source.manualId))
+        .filter((manual): manual is ManualRecord => Boolean(manual));
       const manual = manuals.get(page.manualId);
       const category = page.category === 'general' && manual ? manual.category : page.category;
       const productFamilies = unique([
         ...page.productFamilies,
-        ...(manual?.productFamilies ?? []),
+        ...referencedManuals.flatMap((item) => item.productFamilies),
       ]);
       const title = `${manual?.title ?? page.manualId} page ${page.pageNumber}`;
+      const codeTokens = pageCodeTokens(page.text);
       const searchableText = normaliseSearchText(
-        [title, ...productFamilies, ...page.models, ...page.aliases, page.text].join(' '),
+        [title, ...codeTokens, ...productFamilies, ...page.models, ...page.aliases, page.text].join(' '),
       );
       return {
         key: `page:${page.id}`,
@@ -136,9 +199,10 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
         category,
         productFamilies,
         models: page.models,
-        manualIds: [page.manualId],
+        manualIds: unique(sourceRefs.map((source) => source.manualId)),
         title,
-        codes: '',
+        codes: codeTokens.join(' '),
+        codeTokens,
         modelsText: [...page.models, ...productFamilies].join(' '),
         aliases: page.aliases.join(' '),
         symptoms: '',
@@ -154,6 +218,15 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
 
 export function createSearchEngine(corpus: SearchCorpus): SearchEngine {
   const documents = buildDocuments(corpus);
+  const knownModelTokens = new Set(
+    unique([
+      ...corpus.manuals.flatMap((manual) => manual.productFamilies),
+      ...corpus.pages.flatMap((page) => [...page.productFamilies, ...page.models]),
+      ...corpus.knowledge.flatMap((entry) => [...entry.productFamilies, ...entry.models]),
+      ...Object.keys(corpus.aliases.models),
+      ...Object.values(corpus.aliases.models),
+    ]).map(compactToken),
+  );
   const index = new MiniSearch<IndexedDocument>({
     idField: 'key',
     fields: ['title', 'codes', 'modelsText', 'aliases', 'symptoms', 'summary', 'body'],
@@ -165,6 +238,7 @@ export function createSearchEngine(corpus: SearchCorpus): SearchEngine {
     corpus,
     index,
     documents: new Map(documents.map((document) => [document.key, document])),
+    knownModelTokens,
   };
 }
 
@@ -180,11 +254,8 @@ function hasModelContext(document: IndexedDocument, normalizedQuery: string): bo
   });
 }
 
-function exactCode(document: IndexedDocument, normalizedQuery: string): string | undefined {
-  return document.codes
-    .split(' ')
-    .filter(Boolean)
-    .find((code) => queryTokens(normalizedQuery).includes(normaliseSearchText(code)));
+function exactCode(document: IndexedDocument, queryCodes: string[]): string | undefined {
+  return queryCodes.find((code) => document.codeTokens.includes(code));
 }
 
 function matchesFilters(document: IndexedDocument, filters: SearchFilters): boolean {
@@ -203,10 +274,11 @@ function rank(
   document: IndexedDocument,
   baseScore: number,
   normalizedQuery: string,
+  queryCodes: string[],
 ): SearchHit {
   const tokens = queryTokens(normalizedQuery);
   const modelContext = hasModelContext(document, normalizedQuery);
-  const code = exactCode(document, normalizedQuery);
+  const code = exactCode(document, queryCodes);
   const compactCode = code ? compactToken(code) : '';
   const shortCodeOnly = tokens.length === 1 && /^\d{1,2}$/.test(tokens[0] ?? '');
   const exactTopic = document.acceptanceTopics.some(
@@ -253,6 +325,7 @@ function rank(
     models: document.models,
     kind: document.kind,
     manualIds: document.manualIds,
+    matchedCode: code,
   };
 }
 
@@ -263,6 +336,7 @@ export function search(
 ): SearchHit[] {
   const normalizedQuery = normaliseSearchText(query);
   if (!normalizedQuery) return [];
+  const exactQueryCodes = queryCodeTokens(query, engine.knownModelTokens);
   const expandedQuery = expandQuery(query, engine.corpus.aliases);
   const results = engine.index.search(expandedQuery, {
     boost: {
@@ -282,7 +356,14 @@ export function search(
   return results
     .map((result) => {
       const document = engine.documents.get(String(result.id));
-      return document ? rank(document, result.score, normalizedQuery) : undefined;
+      if (!document) return undefined;
+      if (
+        exactQueryCodes.length &&
+        !exactQueryCodes.every((code) => document.codeTokens.includes(code))
+      ) {
+        return undefined;
+      }
+      return rank(document, result.score, normalizedQuery, exactQueryCodes);
     })
     .filter((hit): hit is SearchHit => Boolean(hit))
     .filter((hit) => {

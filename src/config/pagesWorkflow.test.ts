@@ -7,6 +7,7 @@ describe('GitHub Pages workflow', () => {
     const workflow = await readFile(resolve('.github/workflows/pages.yml'), 'utf8');
 
     expect(workflow).toContain('branches: [main]');
+    expect(workflow).toContain("if: github.ref == 'refs/heads/main'");
     expect(workflow).toContain('contents: read');
     expect(workflow).toContain('pages: write');
     expect(workflow).toContain('id-token: write');

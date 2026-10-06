@@ -16,8 +16,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function records(value: unknown): Record<string, unknown>[] {
-  return Array.isArray(value) ? value.filter(isRecord) : [];
+function records(
+  name: string,
+  value: unknown,
+  errors: string[],
+): Record<string, unknown>[] {
+  if (!Array.isArray(value)) {
+    errors.push(`${name} must be an array`);
+    return [];
+  }
+  const values: Record<string, unknown>[] = [];
+  value.forEach((item, index) => {
+    if (isRecord(item)) values.push(item);
+    else errors.push(`${name} item ${index + 1} must be an object`);
+  });
+  return values;
 }
 
 function idOf(record: Record<string, unknown>): string {
@@ -45,15 +58,24 @@ export function validateCatalogs(
   manualsValue: unknown,
   pagesValue: unknown,
   knowledgeValue: unknown,
+  aliasesValue: unknown = { phrases: {}, models: {} },
 ): CatalogValidationResult {
-  const manuals = records(manualsValue);
-  const pages = records(pagesValue);
-  const knowledge = records(knowledgeValue);
-  const errors = [
+  const errors: string[] = [];
+  const manuals = records('manuals', manualsValue, errors);
+  const pages = records('pages', pagesValue, errors);
+  const knowledge = records('knowledge', knowledgeValue, errors);
+  errors.push(
     ...duplicateErrors('manual', manuals),
     ...duplicateErrors('page', pages),
     ...duplicateErrors('knowledge', knowledge),
-  ];
+  );
+
+  if (!isRecord(aliasesValue)) {
+    errors.push('aliases must be an object');
+  } else {
+    if (!isRecord(aliasesValue.phrases)) errors.push('aliases.phrases must be an object');
+    if (!isRecord(aliasesValue.models)) errors.push('aliases.models must be an object');
+  }
 
   const manualById = new Map(
     manuals.map((manual) => [idOf(manual), manual as unknown as ManualRecord]),

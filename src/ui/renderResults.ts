@@ -41,7 +41,11 @@ function resultCard(card: ResultCard): HTMLElement {
   const modelValues = [...new Set([...card.productFamilies, ...card.models])];
   const models = document.createElement('p');
   models.className = 'result-card__models';
-  models.textContent = modelValues.length ? `Applies to: ${modelValues.join(', ')}` : 'General guidance';
+  models.textContent = modelValues.length
+    ? `Applies to: ${modelValues.join(', ')}`
+    : card.type === 'page'
+      ? 'Model scope: check the cited manual page'
+      : 'General guidance';
   const summary = document.createElement('p');
   summary.className = 'result-card__summary';
   summary.textContent = card.summary;

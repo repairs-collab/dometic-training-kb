@@ -113,4 +113,15 @@ describe('knowledge-base application', () => {
       'Training information could not be loaded',
     );
   });
+
+  test('shows a clear error when loaded catalogues are malformed', async () => {
+    const element = root();
+    await createApp(element, {
+      load: async () => ({ ...corpus, pages: {} } as unknown as SearchCorpus),
+    });
+
+    expect(within(element).getByRole('alert').textContent).toContain(
+      'Training information could not be loaded',
+    );
+  });
 });

@@ -44,3 +44,36 @@ test('no-result state offers a useful recovery path', async ({ page }) => {
   await expect(page.getByText('No matching manual information found')).toBeVisible();
   await expect(page.getByText(/Try a model number, error code, or symptom/i)).toBeVisible();
 });
+
+test('uncurated exact codes return the matching manual page', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('searchbox').fill('RUC E34');
+  await page.getByRole('searchbox').press('Enter');
+
+  const first = page.locator('.result-card').first();
+  await expect(first.locator('h3')).toHaveText(
+    'Dual-Hinge Refrigerator Service Training - August 2026 - page 5',
+  );
+  await expect(first).toContainText('compressor overload');
+  await expect(first).toContainText('Model scope: check the cited manual page');
+  await expect(first).not.toContainText('Applies to: RUC, RCD, RUA, RMD');
+});
+
+test('duplicate pages keep every source manual searchable', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('searchbox').fill('FJZ P2');
+  await page.getByRole('searchbox').press('Enter');
+
+  const first = page.locator('.result-card').first();
+  await expect(first).toContainText('Unit AC over-current protection P2');
+  await expect(first.locator('.sources a')).toHaveCount(2);
+  await expect(first.locator('.sources')).toContainText('FreshJet FJZ Series training');
+});
+
+test('unknown exact codes do not return a different diagnosis', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('searchbox').fill('RUA error 99');
+  await page.getByRole('searchbox').press('Enter');
+
+  await expect(page.getByText('No matching manual information found')).toBeVisible();
+});

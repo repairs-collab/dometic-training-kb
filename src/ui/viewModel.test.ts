@@ -16,13 +16,23 @@ const corpus: SearchCorpus = {
 };
 
 describe('result view models', () => {
-  test('keeps curated answers before matching source pages', () => {
+  test('keeps the highest-scoring curated answer first', () => {
     const hits = search(createSearchEngine(corpus), 'RUC error 33', {});
     const cards = buildResultCards([...hits].reverse(), corpus);
 
     expect(cards[0]?.type).toBe('knowledge');
     expect(cards[0]?.id).toBe('ruc-compressor-start-error-33');
     expect(cards[0]?.models).toContain('RUC5308X');
+  });
+
+  test('does not turn manual-wide families into page applicability claims', () => {
+    const hits = search(createSearchEngine(corpus), 'RUC E34', {});
+    const card = buildResultCards(hits, corpus)[0];
+
+    expect(card?.id).toBe('dual-hinge-fridge-2026-08-p5');
+    expect(card?.productFamilies).toEqual([]);
+    expect(card?.models).toEqual([]);
+    expect(card?.summary).toContain('E34 compressor overload');
   });
 
   test('places safety warnings before procedure steps', () => {

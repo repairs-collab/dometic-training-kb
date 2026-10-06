@@ -42,6 +42,27 @@ describe('model-aware manual search', () => {
     expect(first?.matchReason).toBe('unqualified-short-code');
   });
 
+  it('requires an exact uncurated code match', () => {
+    expect(search(engine, 'RUC E34', {})[0]?.id).toBe('dual-hinge-fridge-2026-08-p5');
+    expect(search(engine, 'RUC E34', {}).some((hit) => hit.id === 'ruc-compressor-start-error-33')).toBe(false);
+    expect(search(engine, 'RUA error 99', {})).toEqual([]);
+  });
+
+  it('keeps duplicate manual and model context searchable', () => {
+    const first = search(engine, 'FJZ P2', {})[0];
+
+    expect(first?.id).toBe('fj48v-training-2026-09-p9');
+    expect(first?.manualIds).toEqual(
+      expect.arrayContaining(['fj48v-training-2026-09', 'fjz-training-2026-09']),
+    );
+    expect(first?.productFamilies).toContain('FJZ');
+    expect(first?.id).not.toBe('fjz-p1-undervoltage');
+  });
+
+  it('does not mistake common electrical abbreviations for error codes', () => {
+    expect(search(engine, 'RUC AC fuse', {})[0]?.id).toBe('ruc-fuse-location');
+  });
+
   it('applies category, model, kind and manual filters', () => {
     expect(search(engine, 'door', { category: 'upright-refrigerator' })).not.toHaveLength(0);
     expect(search(engine, 'door', { category: 'awning' }).every((hit) => hit.category === 'awning')).toBe(true);

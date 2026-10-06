@@ -1,5 +1,6 @@
 import type { SearchCorpus, SearchFilters } from './search/engine';
 import { createSearchEngine, search } from './search/engine';
+import { validateCatalogs } from './data/validation';
 import { deriveFilterOptions } from './ui/filters';
 import { renderFilters, type FiltersView } from './ui/renderFilters';
 import { renderHome, type HomeView } from './ui/renderHome';
@@ -55,6 +56,8 @@ export async function createApp(root: HTMLElement, loader: CatalogLoader): Promi
   initial.main.insertBefore(home.form.closest('.hero')!, initial.filters);
   renderResults(initial.results, { status: 'loading', message: 'Loading training manuals…' });
   let filterView: FiltersView | undefined;
+  let activeHome = home;
+  let activeResults = initial.results;
   let currentQuery = '';
   let currentFilters: SearchFilters = {};
   let runSearch = (_query: string) => {};
@@ -72,8 +75,16 @@ export async function createApp(root: HTMLElement, loader: CatalogLoader): Promi
 
   try {
     const corpus = await loader.load();
-    const ready = layout(root);
+    const validation = validateCatalogs(
+      corpus.manuals,
+      corpus.pages,
+      corpus.knowledge,
+      corpus.aliases,
+    );
+    if (!validation.valid) throw new Error(validation.errors.join('\n'));
     const engine = createSearchEngine(corpus);
+    const ready = layout(root);
+    activeResults = ready.results;
     runSearch = (query: string) => {
       currentQuery = query.trim();
       home.input.value = currentQuery;
@@ -108,6 +119,7 @@ export async function createApp(root: HTMLElement, loader: CatalogLoader): Promi
       runSearch,
       runSearch,
     );
+    activeHome = home;
     ready.main.insertBefore(home.form.closest('.hero')!, ready.filters);
     filterView = renderFilters(ready.filters, deriveFilterOptions(corpus), (filters) => {
       currentFilters = filters;
@@ -122,8 +134,8 @@ export async function createApp(root: HTMLElement, loader: CatalogLoader): Promi
       '',
     );
   } catch {
-    home.setEnabled(false);
-    renderResults(initial.results, {
+    activeHome.setEnabled(false);
+    renderResults(activeResults, {
       status: 'error',
       message: 'Please refresh the page. If the problem continues, the published data files may be missing.',
     });
