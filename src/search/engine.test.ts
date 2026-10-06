@@ -46,6 +46,12 @@ describe('model-aware manual search', () => {
     expect(search(engine, 'RUC E34', {})[0]?.id).toBe('dual-hinge-fridge-2026-08-p5');
     expect(search(engine, 'RUC E34', {}).some((hit) => hit.id === 'ruc-compressor-start-error-33')).toBe(false);
     expect(search(engine, 'RUA error 99', {})).toEqual([]);
+    expect(search(engine, 'RUA E34', {})).toEqual([]);
+  });
+
+  it('treats numbered flash patterns as exact codes', () => {
+    expect(search(engine, 'RCD 3 flashes', {})[0]?.id).toBe('rcd-compressor-controller-test');
+    expect(search(engine, 'RCD 5 flashes', {})[0]?.id).toBe('rcd-five-flashes-overheat');
   });
 
   it('keeps duplicate manual and model context searchable', () => {

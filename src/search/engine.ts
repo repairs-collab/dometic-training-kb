@@ -40,6 +40,7 @@ export interface SearchHit {
   category: ProductCategory;
   productFamilies: string[];
   models: string[];
+  modelContextTokens: string[];
   kind?: EntryKind;
   manualIds: string[];
   matchedCode?: string;
@@ -87,6 +88,27 @@ function separatedCodeText(value: string): string {
     .trim();
 }
 
+const FLASH_NUMBER_WORDS: Record<string, string> = {
+  one: '1',
+  two: '2',
+  three: '3',
+  four: '4',
+  five: '5',
+  six: '6',
+  seven: '7',
+  eight: '8',
+  nine: '9',
+};
+
+function flashCodeTokens(value: string): string[] {
+  const normalized = separatedCodeText(value);
+  const numeric = [...normalized.matchAll(/\b(\d{1,2})\s+flashes?\b/g)]
+    .map((match) => `flash${match[1] ?? ''}`);
+  const words = [...normalized.matchAll(/\b(one|two|three|four|five|six|seven|eight|nine)\s+flashes?\b/g)]
+    .map((match) => `flash${FLASH_NUMBER_WORDS[match[1] ?? ''] ?? ''}`);
+  return unique([...numeric, ...words]);
+}
+
 function declaredCodeTokens(values: string[]): string[] {
   return unique(
     values.flatMap((value) => {
@@ -96,7 +118,7 @@ function declaredCodeTokens(values: string[]): string[] {
       const contextualNumbers = [...normalized.matchAll(/\b(?:error|warning|code)\s+(\d{1,3})\b/g)]
         .map((match) => match[1] ?? '');
       if (/^(?:[a-z]{1,3}\d{0,3}|\d{1,3})$/.test(compact)) tokens.push(compact);
-      return [...tokens, ...contextualNumbers].map(compactToken);
+      return [...tokens, ...contextualNumbers, ...flashCodeTokens(value)].map(compactToken);
     }),
   );
 }
@@ -106,7 +128,7 @@ function pageCodeTokens(value: string): string[] {
   const normalized = separatedCodeText(value);
   const contextualNumbers = [...normalized.matchAll(/\b(?:error|warning|code)\s+(\d{1,3})\b/g)]
     .map((match) => match[1] ?? '');
-  return unique([...uppercaseCodes, ...contextualNumbers].map(compactToken));
+  return unique([...uppercaseCodes, ...contextualNumbers, ...flashCodeTokens(value)].map(compactToken));
 }
 
 function queryCodeTokens(query: string, knownModelTokens: Set<string>): string[] {
@@ -117,7 +139,7 @@ function queryCodeTokens(query: string, knownModelTokens: Set<string>): string[]
   const contextualNumbers = [...normalized.matchAll(/\b(?:error|warning|code)\s+(\d{1,3})\b/g)]
     .map((match) => match[1] ?? '');
   const standaloneNumber = /^\d{1,3}$/.test(normalized) ? [normalized] : [];
-  return unique([...alphanumeric, ...uppercaseLetters, ...contextualNumbers, ...standaloneNumber]
+  return unique([...alphanumeric, ...uppercaseLetters, ...contextualNumbers, ...standaloneNumber, ...flashCodeTokens(query)]
     .map(compactToken))
     .filter(
       (candidate) =>
@@ -152,6 +174,7 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
       category: entry.category,
       productFamilies: entry.productFamilies,
       models: entry.models,
+      modelContextTokens: unique([...entry.models, ...entry.productFamilies].map(compactToken)),
       kind: entry.kind,
       manualIds,
       title: entry.title,
@@ -187,6 +210,21 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
         ...page.productFamilies,
         ...referencedManuals.flatMap((item) => item.productFamilies),
       ]);
+      const pageText = compactToken(page.text);
+      const pageScopedValues = unique([
+        ...page.productFamilies,
+        ...page.models,
+        ...referencedManuals.flatMap((item) =>
+          item.productFamilies.filter((family) => {
+            const familyToken = compactToken(family);
+            return (
+              pageText.includes(familyToken) ||
+              item.productFamilies.length <= 2 ||
+              compactToken(item.title).includes(familyToken)
+            );
+          }),
+        ),
+      ]);
       const title = `${manual?.title ?? page.manualId} page ${page.pageNumber}`;
       const codeTokens = pageCodeTokens(page.text);
       const searchableText = normaliseSearchText(
@@ -199,6 +237,7 @@ function buildDocuments(corpus: SearchCorpus): IndexedDocument[] {
         category,
         productFamilies,
         models: page.models,
+        modelContextTokens: pageScopedValues.map(compactToken),
         manualIds: unique(sourceRefs.map((source) => source.manualId)),
         title,
         codes: codeTokens.join(' '),
@@ -242,16 +281,15 @@ export function createSearchEngine(corpus: SearchCorpus): SearchEngine {
   };
 }
 
-function hasModelContext(document: IndexedDocument, normalizedQuery: string): boolean {
-  return [...document.models, ...document.productFamilies].some((value) => {
-    const normalizedModel = normaliseSearchText(value);
-    const compactModel = compactToken(value);
-    return (
-      normalizedModel.length >= 3 &&
-      (normalizedQuery.includes(normalizedModel) ||
-        (compactModel.length >= 3 && compactToken(normalizedQuery).includes(compactModel)))
-    );
-  });
+function queryModelTokens(query: string, knownModelTokens: Set<string>): string[] {
+  const compactQuery = compactToken(query);
+  return [...knownModelTokens].filter(
+    (model) => model.length >= 3 && compactQuery.includes(model),
+  );
+}
+
+function hasModelContext(document: IndexedDocument, queryModels: string[]): boolean {
+  return queryModels.some((model) => document.modelContextTokens.includes(model));
 }
 
 function exactCode(document: IndexedDocument, queryCodes: string[]): string | undefined {
@@ -275,9 +313,10 @@ function rank(
   baseScore: number,
   normalizedQuery: string,
   queryCodes: string[],
+  queryModels: string[],
 ): SearchHit {
   const tokens = queryTokens(normalizedQuery);
-  const modelContext = hasModelContext(document, normalizedQuery);
+  const modelContext = hasModelContext(document, queryModels);
   const code = exactCode(document, queryCodes);
   const compactCode = code ? compactToken(code) : '';
   const shortCodeOnly = tokens.length === 1 && /^\d{1,2}$/.test(tokens[0] ?? '');
@@ -302,6 +341,7 @@ function rank(
     matchReason = 'exact-topic';
   }
   if (code) {
+    if (document.type === 'knowledge') score += modelContext ? 1_000 : 250;
     if (modelContext) {
       score += 320;
       matchReason = 'exact-model-code';
@@ -337,6 +377,7 @@ export function search(
   const normalizedQuery = normaliseSearchText(query);
   if (!normalizedQuery) return [];
   const exactQueryCodes = queryCodeTokens(query, engine.knownModelTokens);
+  const exactQueryModels = queryModelTokens(query, engine.knownModelTokens);
   const expandedQuery = expandQuery(query, engine.corpus.aliases);
   const results = engine.index.search(expandedQuery, {
     boost: {
@@ -352,10 +393,18 @@ export function search(
     prefix: (term) => term.length >= 3,
     fuzzy: (term) => (term.length >= 6 ? 0.15 : false),
   });
+  const resultScores = new Map(results.map((result) => [String(result.id), result.score]));
+  if (exactQueryCodes.length) {
+    for (const document of engine.documents.values()) {
+      if (exactQueryCodes.every((code) => document.codeTokens.includes(code))) {
+        resultScores.set(document.key, resultScores.get(document.key) ?? 0);
+      }
+    }
+  }
 
-  return results
-    .map((result) => {
-      const document = engine.documents.get(String(result.id));
+  return [...resultScores]
+    .map(([key, baseScore]) => {
+      const document = engine.documents.get(key);
       if (!document) return undefined;
       if (
         exactQueryCodes.length &&
@@ -363,7 +412,14 @@ export function search(
       ) {
         return undefined;
       }
-      return rank(document, result.score, normalizedQuery, exactQueryCodes);
+      if (
+        exactQueryCodes.length &&
+        exactQueryModels.length &&
+        !hasModelContext(document, exactQueryModels)
+      ) {
+        return undefined;
+      }
+      return rank(document, baseScore, normalizedQuery, exactQueryCodes, exactQueryModels);
     })
     .filter((hit): hit is SearchHit => Boolean(hit))
     .filter((hit) => {

@@ -77,3 +77,17 @@ test('unknown exact codes do not return a different diagnosis', async ({ page })
 
   await expect(page.getByText('No matching manual information found')).toBeVisible();
 });
+
+test('numbered flashes stay within the requested model family', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('searchbox').fill('RCD 3 flashes');
+  await page.getByRole('searchbox').press('Enter');
+
+  await expect(page.locator('.result-card h3').first()).toHaveText(
+    'RCD three-flash compressor controller test',
+  );
+
+  await page.getByRole('searchbox').fill('RUA E34');
+  await page.getByRole('searchbox').press('Enter');
+  await expect(page.getByText('No matching manual information found')).toBeVisible();
+});
