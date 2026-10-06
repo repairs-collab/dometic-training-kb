@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build:data": "python -m tools.build_site_data --content content --source source-manuals --output public",
     "build": "vite build",
     "preview": "vite preview",
+    "verify:dist": "node scripts/verify-dist.mjs",
     "test": "vitest run",
     "test:unit": "vitest run"
   },
