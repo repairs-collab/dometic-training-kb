@@ -2,6 +2,8 @@
 
 A public, static search resource built from the supplied Dometic training manuals. It supports plain-language searches for problems, symptoms, error codes, procedures, parts, specifications and training topics, then links each result back to its source manual and page.
 
+Live site: https://repairs-collab.github.io/dometic-training-kb/
+
 ## What is included
 
 - 18 source manuals and 217 indexed pages.
