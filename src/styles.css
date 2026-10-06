@@ -70,9 +70,25 @@ a {
   text-decoration: none;
 }
 
-.site-header span {
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.site-nav a {
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.4rem;
   color: #b9d6d8;
   font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current='page'] {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 main {
@@ -185,6 +201,33 @@ main {
   background: #e9f3f3;
 }
 
+.button--manual-primary,
+.button--outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.button--manual-primary {
+  color: #fff;
+  background: var(--teal-dark);
+}
+
+.button--manual-primary:hover {
+  background: var(--navy);
+}
+
+.button--outline {
+  border: 1px solid var(--teal-dark);
+  color: var(--teal-dark);
+  background: #fff;
+}
+
+.button--outline:hover {
+  background: #e9f3f3;
+}
+
 .examples {
   display: flex;
   align-items: center;
@@ -268,6 +311,114 @@ main {
   background: #fff8ef;
   color: #59402e;
   line-height: 1.5;
+}
+
+.manual-library__hero {
+  padding: 3.75rem 0 3rem;
+  color: #fff;
+  background: linear-gradient(125deg, rgba(7, 29, 43, 0.98), rgba(7, 57, 65, 0.94));
+}
+
+.manual-library__hero h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.manual-library__intro {
+  max-width: 700px;
+  margin: 1.1rem 0 0;
+  color: #dce9ea;
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
+  line-height: 1.55;
+}
+
+.manual-library__content {
+  padding-top: 2.25rem;
+}
+
+.manual-library__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.manual-library__heading h2,
+.manual-library__status {
+  margin: 0;
+}
+
+.manual-library__status {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.manual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.manual-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1.35rem;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--teal);
+  border-radius: 0.7rem;
+  background: var(--surface);
+  box-shadow: 0 0.25rem 0.9rem rgba(16, 39, 48, 0.06);
+}
+
+.manual-card__category {
+  margin: 0;
+  color: var(--teal-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.manual-card h2 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  line-height: 1.25;
+}
+
+.manual-card__details {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, 0.5fr) 1fr;
+  margin: 0 0 1.25rem;
+}
+
+.manual-card__details dt,
+.manual-card__details dd {
+  margin: 0;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.manual-card__details dt {
+  padding-right: 0.8rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.manual-card__details dd {
+  font-size: 0.9rem;
+}
+
+.manual-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: auto;
 }
 
 .results {
@@ -432,11 +583,25 @@ footer {
   .filters__controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .manual-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
-  .site-header span {
-    display: none;
+  .site-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .site-nav {
+    width: 100%;
+  }
+
+  .site-nav a {
+    flex: 1;
+    text-align: center;
   }
 
   .hero h1 {
@@ -473,6 +638,32 @@ footer {
 
   .result-card {
     padding: 1.05rem;
+  }
+
+  .manual-library__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .manual-card {
+    padding: 1.05rem;
+  }
+
+  .manual-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-card__details dt {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .manual-card__details dd {
+    padding-top: 0.15rem;
+  }
+
+  .manual-card__actions .button {
+    width: 100%;
   }
 }
 

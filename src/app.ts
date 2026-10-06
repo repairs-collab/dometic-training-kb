@@ -29,9 +29,18 @@ function layout(root: HTMLElement): {
   brand.className = 'brand';
   brand.href = './';
   brand.textContent = 'Technical Training Hub';
-  const note = document.createElement('span');
-  note.textContent = 'Source-backed answers';
-  header.append(brand, note);
+  const navigation = document.createElement('nav');
+  navigation.className = 'site-nav';
+  navigation.setAttribute('aria-label', 'Main navigation');
+  const searchLink = document.createElement('a');
+  searchLink.href = './';
+  searchLink.textContent = 'Search';
+  searchLink.setAttribute('aria-current', 'page');
+  const manualsLink = document.createElement('a');
+  manualsLink.href = './manuals.html';
+  manualsLink.textContent = 'Manuals';
+  navigation.append(searchLink, manualsLink);
+  header.append(brand, navigation);
 
   const main = document.createElement('main');
   const filterContainer = document.createElement('div');

@@ -4,6 +4,8 @@ A public, static search resource built from the supplied Dometic training manual
 
 Live site: https://dometic.motts.com.au/
 
+Manual library: https://dometic.motts.com.au/manuals.html
+
 ## What is included
 
 - 18 source manuals and 217 indexed pages.
@@ -11,6 +13,7 @@ Live site: https://dometic.motts.com.au/
 - Model-, family- and error-code-aware search.
 - Product, model, information-type and manual filters.
 - One-based PDF page references and links.
+- A current manual library with online viewing and PDF downloads.
 - Visible safety warnings before hazardous procedures.
 - Responsive phone and desktop layouts.
 - No login, database, telemetry or runtime AI service.

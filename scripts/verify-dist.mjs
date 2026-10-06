@@ -19,6 +19,7 @@ async function requireFile(filePath, label) {
 export async function verifyDist(rootValue) {
   const root = path.resolve(rootValue);
   await requireFile(path.join(root, 'index.html'), 'index.html');
+  await requireFile(path.join(root, 'manuals.html'), 'manuals.html');
   const customDomainPath = path.join(root, 'CNAME');
   await requireFile(customDomainPath, 'CNAME');
   const customDomain = (await readFile(customDomainPath, 'utf8')).trim();

@@ -12,7 +12,9 @@ async function fixture(): Promise<string> {
   await mkdir(join(root, 'manuals'));
   await writeFile(join(root, 'CNAME'), 'dometic.motts.com.au\n');
   await writeFile(join(root, 'index.html'), '<script src="./assets/app.js"></script>');
+  await writeFile(join(root, 'manuals.html'), '<script src="./assets/manuals.js"></script>');
   await writeFile(join(root, 'assets', 'app.js'), 'console.log("ok")');
+  await writeFile(join(root, 'assets', 'manuals.js'), 'console.log("manuals")');
   const manuals = Array.from({ length: 18 }, (_, index) => ({
     id: `manual-${index + 1}`,
     filename: `Manual ${index + 1}.pdf`,
@@ -64,6 +66,13 @@ describe('production build verification', () => {
     await rm(join(root, 'CNAME'));
 
     await expect(verifyDist(root)).rejects.toThrow('missing CNAME');
+  });
+
+  test('rejects a package without the manuals page', async () => {
+    const root = await fixture();
+    await rm(join(root, 'manuals.html'));
+
+    await expect(verifyDist(root)).rejects.toThrow('missing manuals.html');
   });
 
   test('rejects a package configured for a different custom domain', async () => {
