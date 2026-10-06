@@ -10,7 +10,7 @@
   --navy: #071d2b;
   --teal: #007d82;
   --teal-dark: #005c61;
-  --orange: #f26a2e;
+  --orange: #b54112;
   --line: #d4dde1;
   --surface: #ffffff;
   --soft: #f5f8f8;
@@ -177,7 +177,7 @@ main {
 }
 
 .button--primary:hover {
-  background: #d9541d;
+  background: #8d2f0a;
 }
 
 .button--quiet {
