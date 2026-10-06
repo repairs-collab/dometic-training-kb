@@ -2,6 +2,8 @@ import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+const CUSTOM_DOMAIN = 'dometic.motts.com.au';
+
 async function readJson(filePath) {
   return JSON.parse(await readFile(filePath, 'utf8'));
 }
@@ -17,6 +19,12 @@ async function requireFile(filePath, label) {
 export async function verifyDist(rootValue) {
   const root = path.resolve(rootValue);
   await requireFile(path.join(root, 'index.html'), 'index.html');
+  const customDomainPath = path.join(root, 'CNAME');
+  await requireFile(customDomainPath, 'CNAME');
+  const customDomain = (await readFile(customDomainPath, 'utf8')).trim();
+  if (customDomain !== CUSTOM_DOMAIN) {
+    throw new Error(`unexpected custom domain: ${customDomain}`);
+  }
   const assetFiles = await readdir(path.join(root, 'assets'));
   if (assetFiles.length === 0) throw new Error('dist assets directory is empty');
 

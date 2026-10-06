@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
@@ -10,6 +10,7 @@ async function fixture(): Promise<string> {
   await mkdir(join(root, 'assets'));
   await mkdir(join(root, 'data'));
   await mkdir(join(root, 'manuals'));
+  await writeFile(join(root, 'CNAME'), 'dometic.motts.com.au\n');
   await writeFile(join(root, 'index.html'), '<script src="./assets/app.js"></script>');
   await writeFile(join(root, 'assets', 'app.js'), 'console.log("ok")');
   const manuals = Array.from({ length: 18 }, (_, index) => ({
@@ -56,5 +57,19 @@ describe('production build verification', () => {
     await writeFile(join(root, 'data', 'pages.json'), JSON.stringify(pages));
 
     await expect(verifyDist(root)).rejects.toThrow('missing PDF');
+  });
+
+  test('rejects a package without the configured custom domain', async () => {
+    const root = await fixture();
+    await rm(join(root, 'CNAME'));
+
+    await expect(verifyDist(root)).rejects.toThrow('missing CNAME');
+  });
+
+  test('rejects a package configured for a different custom domain', async () => {
+    const root = await fixture();
+    await writeFile(join(root, 'CNAME'), 'example.com\n');
+
+    await expect(verifyDist(root)).rejects.toThrow('unexpected custom domain');
   });
 });

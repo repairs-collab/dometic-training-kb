@@ -82,6 +82,7 @@ def build_site_data(content: Path, source: Path, output: Path) -> dict[str, int]
         write_json(data_output / "pages.json", enriched_pages(pages, manuals))
         write_json(data_output / "knowledge.json", sorted(knowledge, key=lambda item: item["id"]))
         write_json(data_output / "aliases.json", aliases)
+        shutil.copy2(content / "CNAME", staging / "CNAME")
         for manual, path in source_paths:
             destination = manual_output / manual["filename"]
             shutil.copy2(path, destination)

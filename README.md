@@ -2,7 +2,7 @@
 
 A public, static search resource built from the supplied Dometic training manuals. It supports plain-language searches for problems, symptoms, error codes, procedures, parts, specifications and training topics, then links each result back to its source manual and page.
 
-Live site: https://repairs-collab.github.io/dometic-training-kb/
+Live site: https://dometic.motts.com.au/
 
 ## What is included
 
@@ -61,7 +61,7 @@ The source PDFs are committed so every public answer remains traceable. Do not s
 
 ## Publishing
 
-The `main` branch is configured for automatic GitHub Pages deployment. See `DEPLOYMENT.md` for GitHub Pages, cPanel and future custom-subdomain instructions.
+The `main` branch is configured for automatic GitHub Pages deployment to `dometic.motts.com.au`. See `DEPLOYMENT.md` for deployment and recovery instructions.
 
 ## Safety and rights
 

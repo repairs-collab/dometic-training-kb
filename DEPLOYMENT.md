@@ -25,16 +25,16 @@ The output is a fully static site and does not require PHP or a database.
 
 Relative URLs are used throughout, so the same `dist` folder works at a subdomain root or GitHub Pages repository path.
 
-## Future custom subdomain on GitHub Pages
+## Custom subdomain on GitHub Pages
 
-Do this only after the default Pages URL is working and the exact subdomain has been chosen.
+The production hostname is `dometic.motts.com.au`.
 
-1. Add a DNS `CNAME` record for the chosen subdomain pointing to the GitHub account's `<account>.github.io` host.
-2. Add a file named `CNAME` containing only the chosen full subdomain to the deploy output. For repeatable builds, keep the selected hostname in a small source file and copy it into `dist` after `pnpm build` or extend `tools/build_site_data.py` once the real hostname is known.
-3. Enter the same hostname under **Settings → Pages → Custom domain**.
-4. Wait for GitHub's DNS check, then enable **Enforce HTTPS**.
+1. Keep a DNS `CNAME` record named `dometic` pointing to `repairs-collab.github.io`.
+2. Keep `content/CNAME` set to `dometic.motts.com.au`; `pnpm build:data` copies it into every deployment.
+3. Keep `dometic.motts.com.au` under **Settings → Pages → Custom domain**.
+4. Keep **Enforce HTTPS** enabled after GitHub completes its DNS and certificate checks.
 
-Do not add a placeholder `CNAME` file to production. A real hostname is required.
+The default GitHub Pages address redirects to the production hostname while the custom-domain setting is active.
 
 ## Manual rollback
 
