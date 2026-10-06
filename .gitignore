@@ -1,0 +1,14 @@
+node_modules/
+dist/
+public/data/
+public/manuals/
+.work/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.egg-info/
+.superpowers/sdd/
+playwright-report/
+test-results/
+.env
+.env.*
