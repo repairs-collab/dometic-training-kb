@@ -43,7 +43,7 @@ function createManualCard(manual: ManualRecord): HTMLElement {
 
   const actions = document.createElement('div');
   actions.className = 'manual-card__actions';
-  const resourceUrl = `./manuals/${encodeURIComponent(manual.filename)}`;
+  const resourceUrl = `/manuals/${encodeURIComponent(manual.filename)}`;
   const downloadLink = document.createElement('a');
   downloadLink.href = resourceUrl;
   downloadLink.download = manual.filename;
@@ -77,9 +77,9 @@ function renderLayout(root: HTMLElement, onLogout: () => void): { grid: HTMLElem
   heroContent.className = 'content-frame';
   const eyebrow = document.createElement('p');
   eyebrow.className = 'eyebrow';
-  eyebrow.textContent = 'Source library';
+  eyebrow.textContent = 'Dometic source library';
   const heading = document.createElement('h1');
-  heading.textContent = 'Training resources';
+  heading.textContent = 'Dometic training resources';
   const intro = document.createElement('p');
   intro.className = 'manual-library__intro';
   intro.textContent = 'View current PDF manuals online or download PDFs and spreadsheets for offline reference.';
@@ -111,7 +111,7 @@ function renderLayout(root: HTMLElement, onLogout: () => void): { grid: HTMLElem
   main.append(hero, library, safety);
   const footer = document.createElement('footer');
   footer.textContent = 'Electrical, gas and refrigeration work must be completed by appropriately qualified technicians.';
-  root.replaceChildren(renderSiteHeader('manuals', onLogout), main, footer);
+  root.replaceChildren(renderSiteHeader('dometic-manuals', onLogout), main, footer);
   return { grid, status };
 }
 
@@ -143,7 +143,7 @@ export async function createManualLibrary(
 
 export const fetchManualsLoader: ManualsLoader = {
   async load() {
-    const response = await fetch('./data/manuals.json');
+    const response = await fetch('/data/manuals.json');
     if (!response.ok) throw new Error('Failed to load manuals');
     const manuals: unknown = await response.json();
     if (!Array.isArray(manuals)) throw new Error('Invalid manuals data');

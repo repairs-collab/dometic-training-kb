@@ -31,7 +31,10 @@ describe('createManualLibrary', () => {
     await createManualLibrary(root, { load: async () => [pdf] });
 
     expect(within(root).getByRole('link', { name: 'View PDF' }).getAttribute('href')).toBe(
-      './manuals/FJ%204%20%26%207%20Error%20codes.pdf',
+      '/manuals/FJ%204%20%26%207%20Error%20codes.pdf',
+    );
+    expect(within(root).getByRole('link', { name: 'Dometic manuals' }).getAttribute('aria-current')).toBe(
+      'page',
     );
     expect(within(root).getByRole('link', { name: 'Download PDF' })).toBeTruthy();
   });
@@ -42,10 +45,10 @@ describe('createManualLibrary', () => {
 
     expect(within(root).queryByRole('link', { name: 'View PDF' })).toBeNull();
     const download = within(root).getByRole('link', { name: 'Download Excel' });
-    expect(download.getAttribute('href')).toBe('./manuals/Thermistor%20chart.xlsx');
+    expect(download.getAttribute('href')).toBe('/manuals/Thermistor%20chart.xlsx');
     expect(download.getAttribute('download')).toBe('Thermistor chart.xlsx');
     expect(within(root).getByText('5 sheets')).toBeTruthy();
-    expect(within(root).getByText('Training resources')).toBeTruthy();
+    expect(within(root).getByText('Dometic training resources')).toBeTruthy();
     expect(within(root).getByText('Current resource library')).toBeTruthy();
     expect(within(root).getByText('1 resource available')).toBeTruthy();
   });
