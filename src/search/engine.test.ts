@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import manuals from '../../content/manuals.json';
 import pages from '../../content/pages.json';
 import knowledge from '../../content/knowledge.json';
@@ -26,6 +28,8 @@ describe('model-aware manual search', () => {
     ['FreshJet generator size', 'freshjet-generator-selection'],
     ['RUC fuse location', 'ruc-fuse-location'],
     ['MC101 gas connections', 'mc101-mc102-gas-connections'],
+    ['FreshJet 7 P4', 'freshjet-4-7-code-p4'],
+    ['FJ7 thermistor resistance at 25 C', 'freshjet-4-7-thermistor-resistance'],
   ])('ranks %s first', (query, expectedId) => {
     expect(search(engine, query, {})[0]?.id).toBe(expectedId);
   });
