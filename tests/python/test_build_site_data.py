@@ -24,7 +24,7 @@ def test_build_copies_validated_catalogues_and_unchanged_manuals(tmp_path: Path)
     result = build_site_data(ROOT / "content", source, output)
 
     assert result == {"manuals": 20, "pages": 221, "knowledge": 87, "resources": 20}
-    assert (output / "CNAME").read_text(encoding="utf-8") == "dometic.motts.com.au\n"
+    assert (output / "CNAME").read_text(encoding="utf-8") == "training.motts.com.au\n"
     assert len(list((output / "manuals").glob("*.pdf"))) == 19
     assert len(list((output / "manuals").glob("*.xlsx"))) == 1
     assert before == {path.name: file_hash(path) for path in source.iterdir() if path.is_file()}

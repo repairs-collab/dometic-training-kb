@@ -1,15 +1,19 @@
-# Dometic Training Knowledge Base
+# Motts Training Hub
 
-A static search resource built from the supplied Dometic training manuals and reference files. It supports plain-language searches for problems, symptoms, error codes, procedures, parts, specifications and training topics, then links each result back to its source document.
+A multi-company static training hub. Its global search covers every published company library, while each company has its own scoped search and resource area. The first company section contains the supplied Dometic training manuals and reference files.
 
-Live site: https://dometic.motts.com.au/
+Live site: https://training.motts.com.au/
 
-Manual library: https://dometic.motts.com.au/manuals.html
+Dometic search: https://training.motts.com.au/dometic/
+
+Dometic manual library: https://training.motts.com.au/dometic/manuals.html
 
 ## What is included
 
 - 20 source resources and 221 indexed source records.
 - 87 reviewed answer cards for common service and training questions.
+- A hub-wide search plus Dometic-scoped search.
+- A Companies submenu ready for additional company libraries.
 - Model-, family- and error-code-aware search.
 - Product, model, information-type and manual filters.
 - One-based PDF page references plus direct spreadsheet source links.
@@ -55,7 +59,7 @@ The browser suite uses test-only credentials and checks the login flow, eleven a
 
 ## Shared login
 
-The login is intentionally a casual-use barrier for this static site. It protects the normal Search and Manuals pages, but it does not protect known direct file URLs, repository files or a browser whose session state is manually modified. Strong access control requires server-side authenticated hosting.
+The login is intentionally a casual-use barrier for this static site. It protects the normal hub, company Search and Manuals pages, but it does not protect known direct file URLs, repository files or a browser whose session state is manually modified. Strong access control requires server-side authenticated hosting.
 
 Successful login stores only the marker `dometic-training-auth-v1` in `sessionStorage`. It lasts for the current browser session and is cleared by **Log out**. The plaintext production password is not stored in the repository or generated site; the browser bundle contains a salted PBKDF2 verifier that can still be attacked offline.
 

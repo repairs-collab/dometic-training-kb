@@ -2,7 +2,7 @@ import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const CUSTOM_DOMAIN = 'dometic.motts.com.au';
+const CUSTOM_DOMAIN = 'training.motts.com.au';
 const AUTH_GATE_MARKER = 'name="dometic-auth-gate" content="required"';
 
 async function readJson(filePath) {
@@ -19,10 +19,11 @@ async function requireFile(filePath, label) {
 
 export async function verifyDist(rootValue) {
   const root = path.resolve(rootValue);
-  await requireFile(path.join(root, 'index.html'), 'index.html');
-  await requireFile(path.join(root, 'manuals.html'), 'manuals.html');
-  for (const entry of ['index.html', 'manuals.html']) {
-    const html = await readFile(path.join(root, entry), 'utf8');
+  const entryPages = ['index.html', 'manuals.html', 'dometic/index.html', 'dometic/manuals.html'];
+  for (const entry of entryPages) {
+    const entryPath = path.join(root, ...entry.split('/'));
+    await requireFile(entryPath, entry);
+    const html = await readFile(entryPath, 'utf8');
     if (!html.includes(AUTH_GATE_MARKER)) {
       throw new Error(`missing authentication gate marker in ${entry}`);
     }

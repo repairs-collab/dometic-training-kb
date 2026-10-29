@@ -11,10 +11,13 @@ async function fixture(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'dometic-dist-'));
   await mkdir(join(root, 'assets'));
   await mkdir(join(root, 'data'));
+  await mkdir(join(root, 'dometic'));
   await mkdir(join(root, 'manuals'));
-  await writeFile(join(root, 'CNAME'), 'dometic.motts.com.au\n');
+  await writeFile(join(root, 'CNAME'), 'training.motts.com.au\n');
   await writeFile(join(root, 'index.html'), `${AUTH_GATE_MARKER}<script src="./assets/app.js"></script>`);
   await writeFile(join(root, 'manuals.html'), `${AUTH_GATE_MARKER}<script src="./assets/manuals.js"></script>`);
+  await writeFile(join(root, 'dometic', 'index.html'), `${AUTH_GATE_MARKER}<script src="../assets/app.js"></script>`);
+  await writeFile(join(root, 'dometic', 'manuals.html'), `${AUTH_GATE_MARKER}<script src="../assets/manuals.js"></script>`);
   await writeFile(join(root, 'assets', 'app.js'), 'console.log("ok")');
   await writeFile(join(root, 'assets', 'manuals.js'), 'console.log("manuals")');
   const manuals: Array<{
@@ -109,6 +112,16 @@ describe('production build verification', () => {
     await expect(verifyDist(root)).rejects.toThrow('missing manuals.html');
   });
 
+  test.each(['dometic/index.html', 'dometic/manuals.html'])(
+    'rejects a package without %s',
+    async (entry) => {
+      const root = await fixture();
+      await rm(join(root, ...entry.split('/')));
+
+      await expect(verifyDist(root)).rejects.toThrow(`missing ${entry}`);
+    },
+  );
+
   test('rejects a package configured for a different custom domain', async () => {
     const root = await fixture();
     await writeFile(join(root, 'CNAME'), 'example.com\n');
@@ -116,10 +129,13 @@ describe('production build verification', () => {
     await expect(verifyDist(root)).rejects.toThrow('unexpected custom domain');
   });
 
-  test.each(['index.html', 'manuals.html'])('rejects %s without the authentication gate marker', async (entry) => {
-    const root = await fixture();
-    await writeFile(join(root, entry), '<script src="./assets/app.js"></script>');
+  test.each(['index.html', 'manuals.html', 'dometic/index.html', 'dometic/manuals.html'])(
+    'rejects %s without the authentication gate marker',
+    async (entry) => {
+      const root = await fixture();
+      await writeFile(join(root, ...entry.split('/')), '<script src="./assets/app.js"></script>');
 
-    await expect(verifyDist(root)).rejects.toThrow(`missing authentication gate marker in ${entry}`);
-  });
+      await expect(verifyDist(root)).rejects.toThrow(`missing authentication gate marker in ${entry}`);
+    },
+  );
 });
