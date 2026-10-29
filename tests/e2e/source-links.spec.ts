@@ -40,7 +40,7 @@ test('spreadsheet source links download without a PDF page fragment', async ({ p
   await page.getByRole('searchbox').press('Enter');
   const source = page.locator('.result-card').first().locator('.sources a').first();
 
-  await expect(source).toHaveAttribute('href', './manuals/Thermistor%20chart.xlsx');
+  await expect(source).toHaveAttribute('href', '/manuals/Thermistor%20chart.xlsx');
   const response = await page.request.get(new URL((await source.getAttribute('href'))!, page.url()).toString());
   expect(response.status()).toBe(200);
   expect((await response.body()).byteLength).toBeGreaterThan(0);

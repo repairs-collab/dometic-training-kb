@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { openAuthenticatedPage } from './auth';
 
-for (const path of ['./', './manuals.html']) {
+for (const path of ['./', './dometic/', './dometic/manuals.html', './manuals.html']) {
   test(`${path} is locked before authentication`, async ({ page }) => {
     await page.goto(path);
 
@@ -23,10 +23,15 @@ test('incorrect credentials remain locked', async ({ page }) => {
 
 test('login persists across navigation and logout locks the site again', async ({ page }) => {
   await openAuthenticatedPage(page, './');
+  await expect(page.getByRole('heading', { level: 1, name: 'Motts Training Hub' })).toBeVisible();
+
+  await page.getByText('Companies', { exact: true }).click();
+  await page.getByRole('link', { name: 'Dometic search' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Dometic Training Knowledge Base' })).toBeVisible();
 
-  await page.getByRole('link', { name: 'Manuals' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Training resources' })).toBeVisible();
+  await page.getByText('Companies', { exact: true }).click();
+  await page.getByRole('link', { name: 'Dometic manuals' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Dometic training resources' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Log out' }).click();

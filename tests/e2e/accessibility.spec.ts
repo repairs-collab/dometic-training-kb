@@ -24,7 +24,7 @@ test('search works from the keyboard', async ({ page }) => {
   await search.fill('RUA settings locked');
   await search.focus();
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: 'Search manuals' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Search all resources' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.locator('.result-card h3').first()).toContainText('RUA settings');
 });

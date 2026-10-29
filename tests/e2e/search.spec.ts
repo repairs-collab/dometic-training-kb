@@ -28,6 +28,18 @@ for (const [query, expectedTitle] of acceptanceSearches) {
   });
 }
 
+test('Dometic company search is scoped and clearly labelled', async ({ page }) => {
+  await openAuthenticatedPage(page, './dometic/');
+
+  await expect(page.getByRole('searchbox', { name: 'Search Dometic resources' })).toBeVisible();
+  await page.getByRole('searchbox').fill('FreshJet 7 P4');
+  await page.getByRole('searchbox').press('Enter');
+
+  await expect(page.locator('.result-card h3').first()).toHaveText(
+    'FreshJet 4/7 P4 compressor discharge overheat',
+  );
+});
+
 test('filters can be applied and reset', async ({ page }) => {
   await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('door');
