@@ -25,6 +25,7 @@ describe('authentication gate', () => {
     const root = document.createElement('div');
     void requireAuthentication(root, { config, storage: sessionStorage });
 
+    expect(within(root).getByText('Motts Training Hub')).toBeTruthy();
     expect(within(root).getByRole('heading', { level: 1, name: 'Team access' })).toBeTruthy();
     expect(within(root).getByLabelText('Username').getAttribute('autocomplete')).toBe('username');
     expect(within(root).getByLabelText('Password').getAttribute('autocomplete')).toBe('current-password');

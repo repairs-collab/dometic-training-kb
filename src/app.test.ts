@@ -42,8 +42,8 @@ describe('knowledge-base application', () => {
     );
     expect((within(element).getByRole('searchbox') as HTMLInputElement).disabled).toBe(false);
     expect(within(element).getByText('20 resources')).toBeTruthy();
-    expect(within(element).getByRole('link', { name: 'Manuals' }).getAttribute('href')).toBe(
-      './manuals.html',
+    expect(within(element).getByRole('link', { name: 'Dometic manuals' }).getAttribute('href')).toBe(
+      '/dometic/manuals.html',
     );
   });
 

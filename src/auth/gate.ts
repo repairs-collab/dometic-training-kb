@@ -37,7 +37,7 @@ function renderLogin(root: HTMLElement): {
 
   const eyebrow = document.createElement('p');
   eyebrow.className = 'eyebrow';
-  eyebrow.textContent = 'Dometic Training Knowledge Base';
+  eyebrow.textContent = 'Motts Training Hub';
   const heading = document.createElement('h1');
   heading.textContent = 'Team access';
   const introduction = document.createElement('p');
