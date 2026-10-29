@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+import { openAuthenticatedPage } from './auth';
+
 test('source links resolve to the referenced PDF and page', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('RUC error 33');
   await page.getByRole('searchbox').press('Enter');
   const source = page.locator('.result-card').first().locator('.sources a').first();
@@ -16,7 +18,7 @@ test('source links resolve to the referenced PDF and page', async ({ page }) => 
 });
 
 test('hazardous procedures show the warning before expandable steps', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('RUC fuse location');
   await page.getByRole('searchbox').press('Enter');
   const card = page.locator('.result-card').filter({ hasText: 'RUC AC and DC fuse locations' }).first();
@@ -30,4 +32,16 @@ test('hazardous procedures show the warning before expandable steps', async ({ p
     ),
   ).toBe(true);
   await expect(details).toBeVisible();
+});
+
+test('spreadsheet source links download without a PDF page fragment', async ({ page }) => {
+  await openAuthenticatedPage(page, './');
+  await page.getByRole('searchbox').fill('FJ7 thermistor resistance at 25 C');
+  await page.getByRole('searchbox').press('Enter');
+  const source = page.locator('.result-card').first().locator('.sources a').first();
+
+  await expect(source).toHaveAttribute('href', './manuals/Thermistor%20chart.xlsx');
+  const response = await page.request.get(new URL((await source.getAttribute('href'))!, page.url()).toString());
+  expect(response.status()).toBe(200);
+  expect((await response.body()).byteLength).toBeGreaterThan(0);
 });

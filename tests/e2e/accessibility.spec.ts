@@ -1,9 +1,15 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
+import { openAuthenticatedPage } from './auth';
+
 test('home and result views have no serious accessibility violations', async ({ page }) => {
   await page.goto('./');
   let scan = await new AxeBuilder({ page }).analyze();
+  expect(scan.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+
+  await openAuthenticatedPage(page, './');
+  scan = await new AxeBuilder({ page }).analyze();
   expect(scan.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
 
   await page.getByRole('searchbox').fill('RCD door not closing');
@@ -13,7 +19,7 @@ test('home and result views have no serious accessibility violations', async ({ 
 });
 
 test('search works from the keyboard', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   const search = page.getByRole('searchbox');
   await search.fill('RUA settings locked');
   await search.focus();
@@ -25,7 +31,7 @@ test('search works from the keyboard', async ({ page }) => {
 
 test('phone layout does not overflow horizontally', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes('phone'), 'Phone project only');
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('FreshJet generator size');
   await page.getByRole('searchbox').press('Enter');
   const overflow = await page.evaluate(

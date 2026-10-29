@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { openAuthenticatedPage } from './auth';
+
 const acceptanceSearches = [
   ['RUC error 33', 'RUC error 33: compressor start failure'],
   ['awning leaking at stitching', 'Awning fabric leaking through stitching'],
@@ -10,11 +12,13 @@ const acceptanceSearches = [
   ['FreshJet generator size', 'Generator size for Dometic air conditioners'],
   ['RUC fuse location', 'RUC AC and DC fuse locations'],
   ['MC101 gas connections', 'MC101 and MC102 rear gas connection points'],
+  ['FreshJet 7 P4', 'FreshJet 4/7 P4 compressor discharge overheat'],
+  ['FJ7 thermistor resistance at 25 C', 'FreshJet 4/7 thermistor resistance chart'],
 ] as const;
 
 for (const [query, expectedTitle] of acceptanceSearches) {
   test(`${query} returns the intended reviewed answer first`, async ({ page }) => {
-    await page.goto('./');
+    await openAuthenticatedPage(page, './');
     const search = page.getByRole('searchbox');
     await search.fill(query);
     await search.press('Enter');
@@ -25,7 +29,7 @@ for (const [query, expectedTitle] of acceptanceSearches) {
 }
 
 test('filters can be applied and reset', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('door');
   await page.getByRole('searchbox').press('Enter');
   const category = page.getByLabel('Product category');
@@ -37,7 +41,7 @@ test('filters can be applied and reset', async ({ page }) => {
 });
 
 test('no-result state offers a useful recovery path', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('quantum toaster nebula');
   await page.getByRole('searchbox').press('Enter');
 
@@ -46,7 +50,7 @@ test('no-result state offers a useful recovery path', async ({ page }) => {
 });
 
 test('uncurated exact codes return the matching manual page', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('RUC E34');
   await page.getByRole('searchbox').press('Enter');
 
@@ -60,7 +64,7 @@ test('uncurated exact codes return the matching manual page', async ({ page }) =
 });
 
 test('duplicate pages keep every source manual searchable', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('FJZ P2');
   await page.getByRole('searchbox').press('Enter');
 
@@ -71,7 +75,7 @@ test('duplicate pages keep every source manual searchable', async ({ page }) => 
 });
 
 test('unknown exact codes do not return a different diagnosis', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('RUA error 99');
   await page.getByRole('searchbox').press('Enter');
 
@@ -79,7 +83,7 @@ test('unknown exact codes do not return a different diagnosis', async ({ page })
 });
 
 test('numbered flashes stay within the requested model family', async ({ page }) => {
-  await page.goto('./');
+  await openAuthenticatedPage(page, './');
   await page.getByRole('searchbox').fill('RCD 3 flashes');
   await page.getByRole('searchbox').press('Enter');
 
