@@ -1,4 +1,5 @@
 import type { ManualRecord } from './data/types';
+import { renderSiteHeader } from './ui/renderSiteHeader';
 
 export interface ManualsLoader {
   load(): Promise<ManualRecord[]>;
@@ -7,37 +8,6 @@ export interface ManualsLoader {
 function humanizeCategory(category: string): string {
   const label = category.replaceAll('-', ' ');
   return `${label.charAt(0).toUpperCase()}${label.slice(1)}`;
-}
-
-function createNavigation(): HTMLElement {
-  const navigation = document.createElement('nav');
-  navigation.className = 'site-nav';
-  navigation.setAttribute('aria-label', 'Main navigation');
-
-  const searchLink = document.createElement('a');
-  searchLink.href = './';
-  searchLink.textContent = 'Search';
-
-  const manualsLink = document.createElement('a');
-  manualsLink.href = './manuals.html';
-  manualsLink.textContent = 'Manuals';
-  manualsLink.setAttribute('aria-current', 'page');
-
-  navigation.append(searchLink, manualsLink);
-  return navigation;
-}
-
-function createHeader(): HTMLElement {
-  const header = document.createElement('header');
-  header.className = 'site-header';
-
-  const brand = document.createElement('a');
-  brand.className = 'brand';
-  brand.href = './';
-  brand.textContent = 'Technical Training Hub';
-
-  header.append(brand, createNavigation());
-  return header;
 }
 
 function createManualCard(manual: ManualRecord): HTMLElement {
@@ -53,10 +23,14 @@ function createManualCard(manual: ManualRecord): HTMLElement {
 
   const details = document.createElement('dl');
   details.className = 'manual-card__details';
-  const detailRows: [string, string][] = [
-    ['Models and families', manual.productFamilies.join(', ')],
-    ['Pages', `${manual.pageCount} ${manual.pageCount === 1 ? 'page' : 'pages'}`],
-  ];
+  const format = manual.format ?? 'pdf';
+  const detailRows: [string, string][] = [['Models and families', manual.productFamilies.join(', ')]];
+  if (format === 'xlsx') {
+    const sheetCount = manual.sheetCount ?? 1;
+    detailRows.push(['Sheets', `${sheetCount} ${sheetCount === 1 ? 'sheet' : 'sheets'}`]);
+  } else {
+    detailRows.push(['Pages', `${manual.pageCount} ${manual.pageCount === 1 ? 'page' : 'pages'}`]);
+  }
   if (manual.documentDate) detailRows.push(['Document date', manual.documentDate]);
 
   for (const [label, value] of detailRows) {
@@ -69,27 +43,30 @@ function createManualCard(manual: ManualRecord): HTMLElement {
 
   const actions = document.createElement('div');
   actions.className = 'manual-card__actions';
-  const pdfUrl = `./manuals/${encodeURIComponent(manual.filename)}`;
-
-  const viewLink = document.createElement('a');
-  viewLink.className = 'button button--manual-primary';
-  viewLink.href = pdfUrl;
-  viewLink.target = '_blank';
-  viewLink.rel = 'noopener';
-  viewLink.textContent = 'View PDF';
-
+  const resourceUrl = `./manuals/${encodeURIComponent(manual.filename)}`;
   const downloadLink = document.createElement('a');
-  downloadLink.className = 'button button--outline';
-  downloadLink.href = pdfUrl;
+  downloadLink.href = resourceUrl;
   downloadLink.download = manual.filename;
-  downloadLink.textContent = 'Download PDF';
-
-  actions.append(viewLink, downloadLink);
+  if (format === 'xlsx') {
+    downloadLink.className = 'button button--manual-primary';
+    downloadLink.textContent = 'Download Excel';
+    actions.append(downloadLink);
+  } else {
+    const viewLink = document.createElement('a');
+    viewLink.className = 'button button--manual-primary';
+    viewLink.href = resourceUrl;
+    viewLink.target = '_blank';
+    viewLink.rel = 'noopener';
+    viewLink.textContent = 'View PDF';
+    downloadLink.className = 'button button--outline';
+    downloadLink.textContent = 'Download PDF';
+    actions.append(viewLink, downloadLink);
+  }
   card.append(category, title, details, actions);
   return card;
 }
 
-function renderLayout(root: HTMLElement): { grid: HTMLElement; status: HTMLElement } {
+function renderLayout(root: HTMLElement, onLogout: () => void): { grid: HTMLElement; status: HTMLElement } {
   root.className = 'app-shell';
   const main = document.createElement('main');
   main.className = 'manual-library';
@@ -102,10 +79,10 @@ function renderLayout(root: HTMLElement): { grid: HTMLElement; status: HTMLEleme
   eyebrow.className = 'eyebrow';
   eyebrow.textContent = 'Source library';
   const heading = document.createElement('h1');
-  heading.textContent = 'Training manuals';
+  heading.textContent = 'Training resources';
   const intro = document.createElement('p');
   intro.className = 'manual-library__intro';
-  intro.textContent = 'View the current source manuals online or download a copy for offline reference.';
+  intro.textContent = 'View current PDF manuals online or download PDFs and spreadsheets for offline reference.';
   heroContent.append(eyebrow, heading, intro);
   hero.append(heroContent);
 
@@ -116,11 +93,11 @@ function renderLayout(root: HTMLElement): { grid: HTMLElement; status: HTMLEleme
   libraryHeading.className = 'manual-library__heading';
   const title = document.createElement('h2');
   title.id = 'manual-library-heading';
-  title.textContent = 'Current PDF library';
+  title.textContent = 'Current resource library';
   const status = document.createElement('p');
   status.className = 'manual-library__status';
   status.setAttribute('aria-live', 'polite');
-  status.textContent = 'Loading manuals…';
+  status.textContent = 'Loading resources…';
   libraryHeading.append(title, status);
   const grid = document.createElement('div');
   grid.className = 'manual-grid';
@@ -134,25 +111,29 @@ function renderLayout(root: HTMLElement): { grid: HTMLElement; status: HTMLEleme
   main.append(hero, library, safety);
   const footer = document.createElement('footer');
   footer.textContent = 'Electrical, gas and refrigeration work must be completed by appropriately qualified technicians.';
-  root.replaceChildren(createHeader(), main, footer);
+  root.replaceChildren(renderSiteHeader('manuals', onLogout), main, footer);
   return { grid, status };
 }
 
-export async function createManualLibrary(root: HTMLElement, loader: ManualsLoader): Promise<void> {
-  const { grid, status } = renderLayout(root);
+export async function createManualLibrary(
+  root: HTMLElement,
+  loader: ManualsLoader,
+  onLogout: () => void = () => {},
+): Promise<void> {
+  const { grid, status } = renderLayout(root, onLogout);
 
   try {
     const manuals = await loader.load();
     const sortedManuals = [...manuals].sort((left, right) => left.title.localeCompare(right.title));
     grid.replaceChildren(...sortedManuals.map(createManualCard));
-    status.textContent = `${manuals.length} manuals available`;
+    status.textContent = `${manuals.length} ${manuals.length === 1 ? 'resource' : 'resources'} available`;
   } catch {
     status.textContent = '';
     const error = document.createElement('div');
     error.className = 'load-error';
     error.setAttribute('role', 'alert');
     const heading = document.createElement('h2');
-    heading.textContent = 'Manuals could not be loaded';
+    heading.textContent = 'Resources could not be loaded';
     const message = document.createElement('p');
     message.textContent = 'Please refresh the page. If the problem continues, the published data file may be missing.';
     error.append(heading, message);

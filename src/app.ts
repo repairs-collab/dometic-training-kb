@@ -5,6 +5,7 @@ import { deriveFilterOptions } from './ui/filters';
 import { renderFilters, type FiltersView } from './ui/renderFilters';
 import { renderHome, type HomeView } from './ui/renderHome';
 import { renderResults } from './ui/renderResults';
+import { renderSiteHeader } from './ui/renderSiteHeader';
 import { buildResultCards } from './ui/viewModel';
 
 export interface CatalogLoader {
@@ -16,31 +17,14 @@ export interface AppController {
   resetFilters(): void;
 }
 
-function layout(root: HTMLElement): {
+function layout(root: HTMLElement, onLogout: () => void): {
   header: HTMLElement;
   main: HTMLElement;
   filters: HTMLElement;
   results: HTMLElement;
 } {
   root.className = 'app-shell';
-  const header = document.createElement('header');
-  header.className = 'site-header';
-  const brand = document.createElement('a');
-  brand.className = 'brand';
-  brand.href = './';
-  brand.textContent = 'Technical Training Hub';
-  const navigation = document.createElement('nav');
-  navigation.className = 'site-nav';
-  navigation.setAttribute('aria-label', 'Main navigation');
-  const searchLink = document.createElement('a');
-  searchLink.href = './';
-  searchLink.textContent = 'Search';
-  searchLink.setAttribute('aria-current', 'page');
-  const manualsLink = document.createElement('a');
-  manualsLink.href = './manuals.html';
-  manualsLink.textContent = 'Manuals';
-  navigation.append(searchLink, manualsLink);
-  header.append(brand, navigation);
+  const header = renderSiteHeader('search', onLogout);
 
   const main = document.createElement('main');
   const filterContainer = document.createElement('div');
@@ -59,8 +43,12 @@ function layout(root: HTMLElement): {
   return { header, main, filters: filterContainer, results };
 }
 
-export async function createApp(root: HTMLElement, loader: CatalogLoader): Promise<AppController> {
-  const initial = layout(root);
+export async function createApp(
+  root: HTMLElement,
+  loader: CatalogLoader,
+  onLogout: () => void = () => {},
+): Promise<AppController> {
+  const initial = layout(root, onLogout);
   let home: HomeView = renderHome(initial.main, { manuals: 0, pages: 0, answers: 0 }, false, () => {}, () => {});
   initial.main.insertBefore(home.form.closest('.hero')!, initial.filters);
   renderResults(initial.results, { status: 'loading', message: 'Loading training manuals…' });
@@ -92,7 +80,7 @@ export async function createApp(root: HTMLElement, loader: CatalogLoader): Promi
     );
     if (!validation.valid) throw new Error(validation.errors.join('\n'));
     const engine = createSearchEngine(corpus);
-    const ready = layout(root);
+    const ready = layout(root, onLogout);
     activeResults = ready.results;
     runSearch = (query: string) => {
       currentQuery = query.trim();

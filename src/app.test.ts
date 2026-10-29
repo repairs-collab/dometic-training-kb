@@ -1,5 +1,5 @@
 import { fireEvent, within } from '@testing-library/dom';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import aliases from '../content/aliases.json';
 import knowledge from '../content/knowledge.json';
@@ -41,10 +41,20 @@ describe('knowledge-base application', () => {
       'Dometic Training Knowledge Base',
     );
     expect((within(element).getByRole('searchbox') as HTMLInputElement).disabled).toBe(false);
-    expect(within(element).getByText('18 manuals')).toBeTruthy();
+    expect(within(element).getByText('20 resources')).toBeTruthy();
     expect(within(element).getByRole('link', { name: 'Manuals' }).getAttribute('href')).toBe(
       './manuals.html',
     );
+  });
+
+  test('passes logout through the shared header', async () => {
+    const element = root();
+    const logout = vi.fn();
+    await createApp(element, loader, logout);
+
+    fireEvent.click(within(element).getByRole('button', { name: 'Log out' }));
+
+    expect(logout).toHaveBeenCalledOnce();
   });
 
   test('runs an example plain-language search and shows cited results', async () => {
