@@ -6,6 +6,7 @@
     "compressor start failure": ["compressor wont start", "compressor won't start", "start fault", "three flashes", "3 flashes"],
     "settings locked": ["cannot change settings", "settings not adjustable", "padlock", "child lock"],
     "generator size": ["generator capacity", "what generator", "kva required"],
+    "thermistor resistance": ["sensor resistance", "ntc resistance", "temperature sensor ohms"],
     "fuse location": ["where are the fuses", "check fuse", "ac fuse", "dc fuse"],
     "gas connection": ["gas inlet", "gas fitting", "two connections", "thermocouple connection"],
     "door not closing": ["door won't shut", "door not latching", "door coming off"]
@@ -13,6 +14,10 @@
   "models": {
     "fresh jet": "FreshJet",
     "fj z": "FJZ",
+    "fj 4": "FreshJet 4",
+    "fj4": "FreshJet 4",
+    "fj 7": "FreshJet 7",
+    "fj7": "FreshJet 7",
     "fj 48v": "FJ48V",
     "rcd 10.5": "RCD10.5",
     "rmd 10.5": "RMD10.5",

@@ -494,5 +494,29 @@
     "text": "End of RCD10.5 training update presentation.",
     "aliases": [],
     "reviewNote": "Visually checked against the rendered source page."
+  },
+  {
+    "manualId": "freshjet-4-7-error-codes",
+    "pageNumber": 1,
+    "status": "manual-transcription",
+    "text": "FreshJet 4 and 7 error codes: P1 under-voltage protection, input voltage below 130 V plus or minus 5 V. P2 AC over-current protection, operating AC current exceeds the limit. P4 compressor discharge-tube overheat protection. P5 evaporator coil temperature too low in cooling. P6 condenser coil temperature too high in cooling. P7 evaporator coil temperature too high in heating. P8 outdoor temperature protection when ambient is below 0 C in cooling or above 32 C in heating. The source table provides supply, fan, sensor, coil-temperature and refrigerant-system checks for these codes.",
+    "aliases": ["FJ4 error codes", "FJ7 error codes", "FreshJet protection codes"],
+    "reviewNote": "Visually transcribed and checked against the rendered source table."
+  },
+  {
+    "manualId": "freshjet-4-7-error-codes",
+    "pageNumber": 2,
+    "status": "manual-transcription",
+    "text": "FreshJet 4 and 7 error codes continued: P9 compressor drive abnormal or compressor does not start. P0 IPM module over-temperature or over-current. E0 communication failure. E1 room temperature sensor fault. E2 evaporator coil temperature sensor fault. E3 condenser coil temperature sensor fault. EL LIN-BUS or CI-BUS communication failure. E6 indoor fan failure. E7 outdoor temperature sensor failure. E8 discharge tube temperature sensor failure. E9 compressor drive or IPM module fault. EA current-sensor fault. EE outdoor EEPROM fault. EF outdoor fan failure. EU voltage detection error. The source table provides cable, fan, sensor, PCB, compressor and refrigerant-system checks.",
+    "aliases": ["FJ4 error codes", "FJ7 error codes", "FreshJet sensor faults"],
+    "reviewNote": "Visually transcribed and checked against the rendered source table."
+  },
+  {
+    "manualId": "freshjet-4-7-error-codes",
+    "pageNumber": 3,
+    "status": "manual-transcription",
+    "text": "FreshJet 4 and 7 temperature sensor check using the ADB display. Press and hold minus and fan for indoor room-air temperature, shown by the snowflake indicator. Press and hold minus and sleep for evaporator-coil temperature, shown by the sun indicator. Press and hold plus and fan for condenser-coil temperature, shown by the droplets indicator. Press and hold plus and sleep for compressor-discharge-tube temperature, shown by AUTO. Press and hold fan and sleep for outdoor-ambient temperature, shown by the fan indicator. The display returns to set temperature when the buttons are released.",
+    "aliases": ["ADB sensor temperatures", "FreshJet temperature sensor check"],
+    "reviewNote": "Visually transcribed and checked against the rendered source table and button icons."
   }
 ]
