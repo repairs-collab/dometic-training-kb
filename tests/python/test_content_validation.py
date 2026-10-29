@@ -17,11 +17,23 @@ def test_reviewed_catalogues_are_complete_and_valid() -> None:
     knowledge = load("knowledge.json")
     aliases = load("aliases.json")
 
-    assert len(manuals) == 18
-    assert len({manual["id"] for manual in manuals}) == 18
-    assert len(pages) == 217
-    assert len(knowledge) >= 45
+    assert len(manuals) == 20
+    assert len({manual["id"] for manual in manuals}) == 20
+    assert len(pages) == 221
+    assert len(knowledge) == 87
     assert not validate_content(manuals, pages, knowledge, aliases)
+
+
+def test_validator_rejects_extra_knowledge_entries() -> None:
+    manuals = load("manuals.json")
+    pages = load("pages.json")
+    knowledge = load("knowledge.json")
+    aliases = load("aliases.json")
+    extra = {**knowledge[0], "id": "unexpected-extra-entry"}
+
+    assert "expected 87 knowledge entries, found 88" in validate_content(
+        manuals, pages, [*knowledge, extra], aliases
+    )
 
 
 def test_every_acceptance_topic_has_a_curated_entry() -> None:
