@@ -116,4 +116,44 @@ describe('validateCatalogs', () => {
 
     expect(result.errors).toEqual(['aliases must be an object']);
   });
+
+  test('accepts supported PDF and Excel resource formats', () => {
+    const workbook = {
+      ...manual,
+      id: 'freshjet-thermistors',
+      filename: 'Thermistor chart.xlsx',
+      format: 'xlsx',
+      sheetCount: 5,
+    };
+    const workbookPage = {
+      ...page,
+      id: 'freshjet-thermistors-p1',
+      manualId: 'freshjet-thermistors',
+      sourceUrl: './manuals/Thermistor%20chart.xlsx',
+      extractionStatus: 'manual-transcription',
+    };
+    const workbookKnowledge = {
+      ...knowledge,
+      id: 'freshjet-thermistor-values',
+      sourceRefs: [{ manualId: 'freshjet-thermistors', pageNumber: 1 }],
+    };
+
+    expect(validateCatalogs([workbook], [workbookPage], [workbookKnowledge])).toEqual({
+      valid: true,
+      errors: [],
+    });
+  });
+
+  test('rejects unknown resource formats and invalid sheet counts', () => {
+    const result = validateCatalogs(
+      [{ ...manual, format: 'docx', sheetCount: 0 }],
+      [page],
+      [knowledge],
+    );
+
+    expect(result.errors).toEqual([
+      'manual fjz-training has unknown format docx',
+      'manual fjz-training must have a positive sheetCount',
+    ]);
+  });
 });

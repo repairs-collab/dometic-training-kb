@@ -2,6 +2,7 @@ import {
   ENTRY_KINDS,
   EXTRACTION_STATUSES,
   PRODUCT_CATEGORIES,
+  RESOURCE_FORMATS,
   type KnowledgeEntry,
   type ManualRecord,
   type PageRecord,
@@ -88,6 +89,12 @@ export function validateCatalogs(
     }
     if (!Number.isInteger(manual.pageCount) || Number(manual.pageCount) < 1) {
       errors.push(`manual ${id} must have a positive pageCount`);
+    }
+    if (manual.format !== undefined && !RESOURCE_FORMATS.includes(manual.format as never)) {
+      errors.push(`manual ${id} has unknown format ${String(manual.format)}`);
+    }
+    if (manual.sheetCount !== undefined && (!Number.isInteger(manual.sheetCount) || Number(manual.sheetCount) < 1)) {
+      errors.push(`manual ${id} must have a positive sheetCount`);
     }
   }
 

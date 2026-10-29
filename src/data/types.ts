@@ -31,6 +31,10 @@ export const ENTRY_KINDS = [
 
 export type EntryKind = (typeof ENTRY_KINDS)[number];
 
+export const RESOURCE_FORMATS = ['pdf', 'xlsx'] as const;
+
+export type ResourceFormat = (typeof RESOURCE_FORMATS)[number];
+
 export interface SourceRef {
   manualId: string;
   pageNumber: number;
@@ -42,6 +46,8 @@ export interface ManualRecord {
   title: string;
   filename: string;
   pageCount: number;
+  format?: ResourceFormat;
+  sheetCount?: number;
   category: ProductCategory;
   productFamilies: string[];
   documentDate?: string;
