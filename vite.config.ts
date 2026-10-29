@@ -8,6 +8,7 @@ export default defineConfig({
       input: {
         index: fileURLToPath(new URL('./index.html', import.meta.url)),
         manuals: fileURLToPath(new URL('./manuals.html', import.meta.url)),
+        dometic: fileURLToPath(new URL('./dometic/index.html', import.meta.url)),
       },
     },
   },

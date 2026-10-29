@@ -7,7 +7,12 @@ import manuals from '../content/manuals.json';
 import pages from '../content/pages.json';
 import type { KnowledgeEntry, ManualRecord, PageRecord } from './data/types';
 import type { SearchCorpus } from './search/engine';
-import { createApp, type CatalogLoader } from './app';
+import {
+  createApp,
+  dometicPresentation,
+  hubPresentation,
+  type CatalogLoader,
+} from './app';
 
 const corpus: SearchCorpus = {
   manuals: manuals as ManualRecord[],
@@ -31,7 +36,7 @@ describe('knowledge-base application', () => {
       load: () => new Promise((next) => (resolve = next)),
     };
     const element = root();
-    const promise = createApp(element, pendingLoader);
+    const promise = createApp(element, pendingLoader, () => {}, dometicPresentation);
 
     expect(within(element).getByRole('status').textContent).toContain('Loading training manuals');
     resolve(corpus);
@@ -44,6 +49,33 @@ describe('knowledge-base application', () => {
     expect(within(element).getByText('20 resources')).toBeTruthy();
     expect(within(element).getByRole('link', { name: 'Dometic manuals' }).getAttribute('href')).toBe(
       '/dometic/manuals.html',
+    );
+  });
+
+  test('renders a global search across every company on the hub page', async () => {
+    const element = root();
+
+    await createApp(element, loader, () => {}, hubPresentation);
+
+    expect(within(element).getByRole('heading', { level: 1 }).textContent).toBe(
+      'Motts Training Hub',
+    );
+    expect(within(element).getByRole('searchbox', { name: 'Search all training resources' })).toBeTruthy();
+    expect(within(element).getByRole('button', { name: 'Search all resources' })).toBeTruthy();
+    expect(within(element).getByRole('link', { name: 'Home' }).getAttribute('aria-current')).toBe('page');
+  });
+
+  test('renders a Dometic-scoped search on the company page', async () => {
+    const element = root();
+
+    await createApp(element, loader, () => {}, dometicPresentation);
+
+    expect(within(element).getByRole('heading', { level: 1 }).textContent).toBe(
+      'Dometic Training Knowledge Base',
+    );
+    expect(within(element).getByRole('searchbox', { name: 'Search Dometic resources' })).toBeTruthy();
+    expect(within(element).getByRole('link', { name: 'Dometic search' }).getAttribute('aria-current')).toBe(
+      'page',
     );
   });
 

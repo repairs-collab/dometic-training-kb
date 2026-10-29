@@ -1,5 +1,5 @@
 import './styles.css';
-import { createApp, fetchCatalogLoader } from './app';
+import { createApp, dometicPresentation, fetchCatalogLoader } from './app';
 import { authConfig } from './auth/config';
 import { requireAuthentication } from './auth/gate';
 
@@ -9,7 +9,7 @@ const appRoot = root;
 
 async function start(): Promise<void> {
   const authSession = await requireAuthentication(appRoot, { config: authConfig });
-  await createApp(appRoot, fetchCatalogLoader, authSession.logout);
+  await createApp(appRoot, fetchCatalogLoader, authSession.logout, dometicPresentation);
 }
 
 void start();

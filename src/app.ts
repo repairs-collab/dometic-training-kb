@@ -3,7 +3,7 @@ import { createSearchEngine, search } from './search/engine';
 import { validateCatalogs } from './data/validation';
 import { deriveFilterOptions } from './ui/filters';
 import { renderFilters, type FiltersView } from './ui/renderFilters';
-import { renderHome, type HomeView } from './ui/renderHome';
+import { renderHome, type HomePresentation, type HomeView } from './ui/renderHome';
 import { renderResults } from './ui/renderResults';
 import { renderSiteHeader } from './ui/renderSiteHeader';
 import { buildResultCards } from './ui/viewModel';
@@ -17,14 +17,38 @@ export interface AppController {
   resetFilters(): void;
 }
 
-function layout(root: HTMLElement, onLogout: () => void): {
+export interface AppPresentation extends HomePresentation {
+  page: 'hub' | 'dometic-search';
+}
+
+export const hubPresentation: AppPresentation = {
+  page: 'hub',
+  eyebrow: 'All companies and training resources',
+  title: 'Motts Training Hub',
+  intro: 'Search problems, symptoms, error codes, procedures, parts and training topics across every company in one place.',
+  searchLabel: 'Search all training resources',
+  searchPlaceholder: 'Example: RUC error 33 or awning leaking at stitching',
+  submitLabel: 'Search all resources',
+};
+
+export const dometicPresentation: AppPresentation = {
+  page: 'dometic-search',
+  eyebrow: 'Dometic service training',
+  title: 'Dometic Training Knowledge Base',
+  intro: 'Search Dometic problems, symptoms, error codes, procedures, parts and training topics in plain language.',
+  searchLabel: 'Search Dometic resources',
+  searchPlaceholder: 'Example: RUC error 33 or FreshJet 7 P4',
+  submitLabel: 'Search Dometic',
+};
+
+function layout(root: HTMLElement, onLogout: () => void, presentation: AppPresentation): {
   header: HTMLElement;
   main: HTMLElement;
   filters: HTMLElement;
   results: HTMLElement;
 } {
   root.className = 'app-shell';
-  const header = renderSiteHeader('search', onLogout);
+  const header = renderSiteHeader(presentation.page, onLogout);
 
   const main = document.createElement('main');
   const filterContainer = document.createElement('div');
@@ -47,9 +71,10 @@ export async function createApp(
   root: HTMLElement,
   loader: CatalogLoader,
   onLogout: () => void = () => {},
+  presentation: AppPresentation = dometicPresentation,
 ): Promise<AppController> {
-  const initial = layout(root, onLogout);
-  let home: HomeView = renderHome(initial.main, { manuals: 0, pages: 0, answers: 0 }, false, () => {}, () => {});
+  const initial = layout(root, onLogout, presentation);
+  let home: HomeView = renderHome(initial.main, { manuals: 0, pages: 0, answers: 0 }, false, presentation, () => {}, () => {});
   initial.main.insertBefore(home.form.closest('.hero')!, initial.filters);
   renderResults(initial.results, { status: 'loading', message: 'Loading training manuals…' });
   let filterView: FiltersView | undefined;
@@ -80,7 +105,7 @@ export async function createApp(
     );
     if (!validation.valid) throw new Error(validation.errors.join('\n'));
     const engine = createSearchEngine(corpus);
-    const ready = layout(root, onLogout);
+    const ready = layout(root, onLogout, presentation);
     activeResults = ready.results;
     runSearch = (query: string) => {
       currentQuery = query.trim();
@@ -113,6 +138,7 @@ export async function createApp(
       ready.main,
       { manuals: corpus.manuals.length, pages: corpus.pages.length, answers: corpus.knowledge.length },
       true,
+      presentation,
       runSearch,
       runSearch,
     );
@@ -150,10 +176,10 @@ async function fetchJson(path: string): Promise<unknown> {
 export const fetchCatalogLoader: CatalogLoader = {
   async load() {
     const [manuals, pages, knowledge, aliases] = await Promise.all([
-      fetchJson('./data/manuals.json'),
-      fetchJson('./data/pages.json'),
-      fetchJson('./data/knowledge.json'),
-      fetchJson('./data/aliases.json'),
+      fetchJson('/data/manuals.json'),
+      fetchJson('/data/pages.json'),
+      fetchJson('/data/knowledge.json'),
+      fetchJson('/data/aliases.json'),
     ]);
     return { manuals, pages, knowledge, aliases } as SearchCorpus;
   },

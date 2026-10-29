@@ -10,10 +10,20 @@ export interface HomeView {
   setEnabled(enabled: boolean): void;
 }
 
+export interface HomePresentation {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  searchLabel: string;
+  searchPlaceholder: string;
+  submitLabel: string;
+}
+
 export function renderHome(
   container: HTMLElement,
   stats: HomeStats,
   enabled: boolean,
+  presentation: HomePresentation,
   onSearch: (query: string) => void,
   onExample: (query: string) => void,
 ): HomeView {
@@ -22,15 +32,14 @@ export function renderHome(
 
   const eyebrow = document.createElement('p');
   eyebrow.className = 'eyebrow';
-  eyebrow.textContent = 'Service training, made searchable';
+  eyebrow.textContent = presentation.eyebrow;
 
   const title = document.createElement('h1');
-  title.textContent = 'Dometic Training Knowledge Base';
+  title.textContent = presentation.title;
 
   const intro = document.createElement('p');
   intro.className = 'hero__intro';
-  intro.textContent =
-    'Search problems, symptoms, error codes, procedures, parts and training topics in plain language.';
+  intro.textContent = presentation.intro;
 
   const statsList = document.createElement('ul');
   statsList.className = 'stats';
@@ -49,20 +58,20 @@ export function renderHome(
   form.setAttribute('role', 'search');
   const label = document.createElement('label');
   label.htmlFor = 'knowledge-search';
-  label.textContent = 'What do you need help with?';
+  label.textContent = presentation.searchLabel;
   const row = document.createElement('div');
   row.className = 'search-form__row';
   const input = document.createElement('input');
   input.id = 'knowledge-search';
   input.type = 'search';
   input.name = 'query';
-  input.placeholder = 'Example: RUC error 33 or awning leaking at stitching';
+  input.placeholder = presentation.searchPlaceholder;
   input.autocomplete = 'off';
   input.disabled = !enabled;
   const submit = document.createElement('button');
   submit.type = 'submit';
   submit.className = 'button button--primary';
-  submit.textContent = 'Search manuals';
+  submit.textContent = presentation.submitLabel;
   submit.disabled = !enabled;
   row.append(input, submit);
   form.append(label, row);
