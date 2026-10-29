@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const CUSTOM_DOMAIN = 'dometic.motts.com.au';
+const AUTH_GATE_MARKER = 'name="dometic-auth-gate" content="required"';
 
 async function readJson(filePath) {
   return JSON.parse(await readFile(filePath, 'utf8'));
@@ -20,6 +21,12 @@ export async function verifyDist(rootValue) {
   const root = path.resolve(rootValue);
   await requireFile(path.join(root, 'index.html'), 'index.html');
   await requireFile(path.join(root, 'manuals.html'), 'manuals.html');
+  for (const entry of ['index.html', 'manuals.html']) {
+    const html = await readFile(path.join(root, entry), 'utf8');
+    if (!html.includes(AUTH_GATE_MARKER)) {
+      throw new Error(`missing authentication gate marker in ${entry}`);
+    }
+  }
   const customDomainPath = path.join(root, 'CNAME');
   await requireFile(customDomainPath, 'CNAME');
   const customDomain = (await readFile(customDomainPath, 'utf8')).trim();
@@ -34,18 +41,24 @@ export async function verifyDist(rootValue) {
   const pages = await readJson(path.join(dataRoot, 'pages.json'));
   const knowledge = await readJson(path.join(dataRoot, 'knowledge.json'));
   await readJson(path.join(dataRoot, 'aliases.json'));
-  if (manuals.length !== 18) throw new Error(`expected 18 manuals, found ${manuals.length}`);
-  if (pages.length !== 217) throw new Error(`expected 217 pages, found ${pages.length}`);
-  if (knowledge.length < 45) {
-    throw new Error(`expected at least 45 knowledge entries, found ${knowledge.length}`);
+  if (manuals.length !== 20) throw new Error(`expected 20 resources, found ${manuals.length}`);
+  if (pages.length !== 221) throw new Error(`expected 221 source records, found ${pages.length}`);
+  if (knowledge.length !== 87) {
+    throw new Error(`expected 87 knowledge entries, found ${knowledge.length}`);
   }
 
   const manualById = new Map(manuals.map((manual) => [manual.id, manual]));
   const manualRoot = path.join(root, 'manuals');
-  const pdfFiles = (await readdir(manualRoot)).filter((name) => name.toLowerCase().endsWith('.pdf'));
-  if (pdfFiles.length !== 18) throw new Error(`expected 18 PDFs, found ${pdfFiles.length}`);
+  const resourceFiles = await readdir(manualRoot);
+  const pdfFiles = resourceFiles.filter((name) => name.toLowerCase().endsWith('.pdf'));
+  const spreadsheetFiles = resourceFiles.filter((name) => name.toLowerCase().endsWith('.xlsx'));
+  if (resourceFiles.length !== 20) throw new Error(`expected 20 resources, found ${resourceFiles.length}`);
+  if (pdfFiles.length !== 19) throw new Error(`expected 19 PDFs, found ${pdfFiles.length}`);
+  if (spreadsheetFiles.length !== 1) {
+    throw new Error(`expected 1 spreadsheet, found ${spreadsheetFiles.length}`);
+  }
   for (const manual of manuals) {
-    await requireFile(path.join(manualRoot, manual.filename), 'PDF');
+    await requireFile(path.join(manualRoot, manual.filename), 'resource');
   }
 
   for (const page of pages) {
@@ -55,7 +68,11 @@ export async function verifyDist(rootValue) {
       throw new Error(`page ${page.id} is outside manual bounds`);
     }
     const [urlPath, fragment] = String(page.sourceUrl).split('#page=');
-    if (!urlPath || Number(fragment) !== page.pageNumber) {
+    const format = manual.format ?? 'pdf';
+    const invalidFragment = format === 'pdf'
+      ? Number(fragment) !== page.pageNumber
+      : fragment !== undefined;
+    if (!urlPath || invalidFragment) {
       throw new Error(`page ${page.id} has an invalid source URL`);
     }
     const relativePath = decodeURIComponent(urlPath.replace(/^\.\//, ''));
@@ -63,7 +80,7 @@ export async function verifyDist(rootValue) {
     if (!resolved.startsWith(`${manualRoot}${path.sep}`)) {
       throw new Error(`page ${page.id} source URL leaves the manuals directory`);
     }
-    await requireFile(resolved, 'PDF');
+    await requireFile(resolved, 'resource');
   }
 
   for (const entry of knowledge) {
@@ -76,7 +93,14 @@ export async function verifyDist(rootValue) {
     }
   }
 
-  return { manuals: manuals.length, pages: pages.length, knowledge: knowledge.length, pdfs: pdfFiles.length };
+  return {
+    manuals: manuals.length,
+    pages: pages.length,
+    knowledge: knowledge.length,
+    resources: resourceFiles.length,
+    pdfs: pdfFiles.length,
+    spreadsheets: spreadsheetFiles.length,
+  };
 }
 
 const scriptPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
@@ -85,7 +109,7 @@ if (scriptPath === import.meta.url) {
   verifyDist(root)
     .then((result) => {
       process.stdout.write(
-        `Verified ${result.manuals} manuals, ${result.pages} pages, ${result.knowledge} knowledge entries and ${result.pdfs} PDFs\n`,
+        `Verified ${result.manuals} resources, ${result.pages} source records, ${result.knowledge} knowledge entries, ${result.pdfs} PDFs and ${result.spreadsheets} spreadsheet\n`,
       );
     })
     .catch((error) => {
