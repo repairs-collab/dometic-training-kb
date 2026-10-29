@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import aliases from '../../content/aliases.json';
 import knowledge from '../../content/knowledge.json';
 import manuals from '../../content/manuals.json';
@@ -52,13 +54,23 @@ describe('result view models', () => {
     ]);
   });
 
+  test('labels the thermistor workbook source by sheet', () => {
+    const hits = search(createSearchEngine(corpus), 'FJ7 thermistor resistance at 25 C', {});
+    const card = buildResultCards(hits, corpus).find(
+      (item) => item.id === 'freshjet-4-7-thermistor-resistance',
+    );
+
+    expect(card?.sources[0]?.label).toBe('FreshJet 4/7 thermistor resistance chart, Sheet1');
+    expect(card?.sources[0]?.url).not.toContain('#page=');
+  });
+
   test('derives stable filter choices and counts from the corpus', () => {
     const options = deriveFilterOptions(corpus);
     const airConditioners = options.categories.find(
       (option) => option.value === 'air-conditioner',
     );
 
-    expect(options.manuals).toHaveLength(18);
+    expect(options.manuals).toHaveLength(20);
     expect(airConditioners?.count).toBeGreaterThan(0);
     expect(options.models.some((option) => option.value === 'RUC')).toBe(true);
     expect(options.kinds.some((option) => option.value === 'error-code')).toBe(true);

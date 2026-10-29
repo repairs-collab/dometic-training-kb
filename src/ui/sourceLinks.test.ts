@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { buildPdfUrl } from './sourceLinks';
+import { buildPdfUrl, buildSourceUrl } from './sourceLinks';
 
 describe('buildPdfUrl', () => {
   test('encodes only the filename and preserves a one-based page fragment', () => {
@@ -19,6 +19,20 @@ describe('buildPdfUrl', () => {
     expect(() => buildPdfUrl('manual.pdf', 0)).toThrow('pageNumber must be a positive integer');
     expect(() => buildPdfUrl('manual.pdf', 1.5)).toThrow(
       'pageNumber must be a positive integer',
+    );
+  });
+});
+
+describe('buildSourceUrl', () => {
+  test('keeps one-based PDF page fragments', () => {
+    expect(buildSourceUrl('FJ 4 & 7 Error codes.pdf', 2, 'pdf')).toBe(
+      './manuals/FJ%204%20%26%207%20Error%20codes.pdf#page=2',
+    );
+  });
+
+  test('links to an Excel workbook without a page fragment', () => {
+    expect(buildSourceUrl('Thermistor chart.xlsx', 1, 'xlsx')).toBe(
+      './manuals/Thermistor%20chart.xlsx',
     );
   });
 });

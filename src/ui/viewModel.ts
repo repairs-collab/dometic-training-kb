@@ -6,7 +6,7 @@ import type {
   SpecificationValue,
 } from '../data/types';
 import type { SearchCorpus, SearchHit } from '../search/engine';
-import { buildPdfUrl } from './sourceLinks';
+import { buildSourceUrl } from './sourceLinks';
 
 export interface ResultSource {
   manualId: string;
@@ -58,7 +58,7 @@ function sourceLinks(sourceRefs: SourceRef[], corpus: SearchCorpus): ResultSourc
       manualTitle: manual.title,
       pageNumber: sourceRef.pageNumber,
       label: sourceRef.label ?? `${manual.title}, page ${sourceRef.pageNumber}`,
-      url: buildPdfUrl(manual.filename, sourceRef.pageNumber),
+      url: buildSourceUrl(manual.filename, sourceRef.pageNumber, manual.format ?? 'pdf'),
     });
   }
   return sources;

@@ -35,7 +35,7 @@ export function renderHome(
   const statsList = document.createElement('ul');
   statsList.className = 'stats';
   for (const value of [
-    `${stats.manuals} manuals`,
+    `${stats.manuals} resources`,
     `${stats.pages} source pages`,
     `${stats.answers} reviewed answers`,
   ]) {
