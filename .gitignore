@@ -13,3 +13,9 @@ playwright-report/
 test-results/
 .env
 .env.*
+.tmp/
+.venv/
+.python-deps/
+.pnpm-home/
+.pnpm-store/
+debug.log
