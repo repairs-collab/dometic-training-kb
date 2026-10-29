@@ -16,6 +16,7 @@ MANUAL_IDS = {
     "Awning Training - Update August 2026.pdf": "awning-training-2026-08",
     "Dual Hinge Refrigerators Training - Update August 2026.pdf": "dual-hinge-fridge-2026-08",
     "Error codes - RMD10.5XS.pdf": "rmd105xs-error-codes",
+    "FJ 4 & 7 Error codes.pdf": "freshjet-4-7-error-codes",
     "FJ 48v Training - 22-9-2026.pdf": "fj48v-training-2026-09",
     "FJZ ADB Com socket voltages.pdf": "fjz-adb-voltages",
     "FJZ ADB DISPLAY SOCKETS - CORRECT SOCKET FOR RTU.pdf": "fjz-adb-display-sockets",

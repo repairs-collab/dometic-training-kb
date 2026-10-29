@@ -31,6 +31,7 @@ ACCEPTANCE_TOPICS = (
     "MC101 gas connections",
 )
 REVIEWED_LOW_TEXT_STATUSES = {"ocr", "manual-transcription", "visual-only", "excluded"}
+RESOURCE_FORMATS = {"pdf", "xlsx"}
 
 
 def duplicate_ids(kind: str, records: list[dict]) -> list[str]:
@@ -55,12 +56,12 @@ def validate_content(
     errors.extend(duplicate_ids("page", pages))
     errors.extend(duplicate_ids("knowledge", knowledge))
 
-    if len(manuals) != 18:
-        errors.append(f"expected 18 manuals, found {len(manuals)}")
-    if len(pages) != 217:
-        errors.append(f"expected 217 pages, found {len(pages)}")
-    if len(knowledge) < 45:
-        errors.append(f"expected at least 45 knowledge entries, found {len(knowledge)}")
+    if len(manuals) != 20:
+        errors.append(f"expected 20 resources, found {len(manuals)}")
+    if len(pages) != 221:
+        errors.append(f"expected 221 indexed source records, found {len(pages)}")
+    if len(knowledge) != 87:
+        errors.append(f"expected 87 knowledge entries, found {len(knowledge)}")
 
     manual_by_id = {str(manual.get("id")): manual for manual in manuals}
     for manual in manuals:
@@ -69,6 +70,12 @@ def validate_content(
             errors.append(f"manual {manual_id} has invalid category")
         if not isinstance(manual.get("pageCount"), int) or manual["pageCount"] < 1:
             errors.append(f"manual {manual_id} must have a positive pageCount")
+        if manual.get("format", "pdf") not in RESOURCE_FORMATS:
+            errors.append(f"manual {manual_id} has invalid format")
+        if "sheetCount" in manual and (
+            not isinstance(manual["sheetCount"], int) or manual["sheetCount"] < 1
+        ):
+            errors.append(f"manual {manual_id} must have a positive sheetCount")
 
     for page in pages:
         page_id = str(page.get("id"))

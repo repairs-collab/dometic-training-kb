@@ -101,7 +101,7 @@ def build_site_data(content: Path, source: Path, output: Path) -> dict[str, int]
         "manuals": len(manuals),
         "pages": len(pages),
         "knowledge": len(knowledge),
-        "pdfs": len(source_paths),
+        "resources": len(source_paths),
     }
 
 
@@ -114,7 +114,7 @@ def main() -> int:
     result = build_site_data(args.content, args.source, args.output)
     print(
         f"Built {result['manuals']} manuals, {result['pages']} pages, "
-        f"{result['knowledge']} knowledge entries and {result['pdfs']} PDFs"
+        f"{result['knowledge']} knowledge entries and {result['resources']} resources"
     )
     return 0
 
